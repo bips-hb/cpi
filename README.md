@@ -12,5 +12,15 @@ The package is not on CRAN yet. To install the development version from GitHub u
 devtools::install_github("dswatson/cpi")
 ```
 
+### Examples
+Calculate CPI for random forest on iris data with 5-fold cross validation:
+```R
+mytask <- makeClassifTask(data = iris, target = "Species")
+cpi(task = mytask, 
+    learner = makeLearner("classif.ranger", num.trees = 50),
+    resampling = makeResampleDesc("CV", iters = 5), 
+    measure = "mmce", test = "t")
+```
+
 ### References
 * Watson D. S. & Wright, M. N. (2018). Testing conditional independence in supervised learning algorithms. In preparation. 
