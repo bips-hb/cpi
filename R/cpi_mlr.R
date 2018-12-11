@@ -200,41 +200,29 @@ compute_loss <- function(pred, measure) {
     }
   } else if (getTaskType(pred) == "classif") {
     if (measure$id == "logloss") {
-      # logloss (taken from mlr::measureLogloss)
+      # Logloss 
       probabilities <- pred$data[, paste("prob", pred$task.desc$class.levels, sep = ".")]
-      
-      #let's confine the predicted probabilities to [eps,1 - eps], so logLoss doesn't reach infinity under any circumstance
-      eps <- 1e-15
-      probabilities[probabilities > 1 - eps] <- 1 - eps
-      probabilities[probabilities < eps] <- eps
-      
       truth <- match(as.character(pred$data$truth), pred$task.desc$class.levels)
-      p <- mlr:::getRowEls(probabilities, truth)
+      p <- probabilities[cbind(seq_len(nrow(probabilities)), truth)]
       loss <- -log(p)
     } else if (measure$id == "mmce") {
       # Misclassification error
       loss <- 1*(pred$data$truth != pred$data$response)
-      
-      # Avoid 0 and 1
-      eps <- 1e-15
-      loss[loss > 1 - eps] <- 1 - eps
-      loss[loss < eps] <- eps
     } else if (measure$id == "brier") {
       # Brier score
       y <- as.numeric(pred$data$truth == pred$task.desc$positive)
       loss <- (y - pred$data[, paste("prob", pred$task.desc$positive, sep = ".")])^2
-      
-      # Avoid 0 and 1
-      eps <- 1e-15
-      loss[loss > 1 - eps] <- 1 - eps
-      loss[loss < eps] <- eps
     } else {
       stop("Unknown measure.")
     }
     
-    
+    # Avoid 0 and 1
+    eps <- 1e-15
+    loss[loss > 1 - eps] <- 1 - eps
+    loss[loss < eps] <- eps
   } else {
     stop("Unknown task type.")
   }
+  
   loss
 }
