@@ -28,30 +28,30 @@
 #' @examples 
 #' library(mlr)
 #' # Regression with linear model
-#' cpi_mlr(task = bh.task, learner = makeLearner("regr.lm"), 
+#' cpi(task = bh.task, learner = makeLearner("regr.lm"), 
 #'         resampling = makeResampleDesc("Holdout"))
 #' 
 #' # Classification with logistic regression, log-loss and subsampling
-#' cpi_mlr(task = iris.task, 
+#' cpi(task = iris.task, 
 #'         learner = makeLearner("classif.glmnet", predict.type = "prob"), 
 #'         resampling = makeResampleDesc("CV", iters = 5), 
 #'         measure = "logloss", test = "t")
 #'  
 #' # Random forest with out-of-bag error               
-#' cpi_mlr(task = bh.task, learner = makeLearner("regr.ranger", num.trees = 50), 
+#' cpi(task = bh.task, learner = makeLearner("regr.ranger", num.trees = 50), 
 #'         resampling = "oob", measure = "mse", test = "t")
 #'         
-cpi_mlr <- function(task, learner, 
-                    resampling = NULL,
-                    test_data = NULL,
-                    measure = NULL,
-                    test = "t",
-                    permute = TRUE,
-                    log = TRUE,
-                    B = 10000,
-                    alpha = 0.05, 
-                    verbose = FALSE, 
-                    cores = 1) {
+cpi <- function(task, learner, 
+                resampling = NULL,
+                test_data = NULL,
+                measure = NULL,
+                test = "t",
+                permute = TRUE,
+                log = TRUE,
+                B = 10000,
+                alpha = 0.05, 
+                verbose = FALSE, 
+                cores = 1) {
   if (is.null(measure)) {
     if (getTaskType(task) == "regr") {
       measure <- mse
