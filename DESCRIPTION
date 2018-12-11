@@ -5,9 +5,12 @@ Version: 0.0.1
 Date: 2018-12-10
 Author: David S. Watson, Marvin N. Wright
 Maintainer: Marvin N. Wright <cran@wrig.de>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Description: A general test for conditional independence in supervised learning algorithms. 
+  Implements a conditional variable importance measure which can be applied to any supervised 
+  learning algorithm and loss function. Provides statistical inference procedures without 
+  parametric assumptions and applies equally well to continuous and categorical predictors 
+  and outcomes.
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.1.0
