@@ -130,6 +130,7 @@ cpi <- function(task, learner,
         dif <- err_reduced - err_full
       }
       res$CPI <- mean(dif)
+      res$SE <- sd(dif) / sqrt(length(dif))
       if (test == "fisher") {
         orig_mean <- mean(dif)
         
@@ -142,7 +143,6 @@ cpi <- function(task, learner,
         res$ci.lo <- orig_mean - quantile(perm_means, 1 - alpha)
       } else if (test == "t") {
         test_result <- t.test(dif, alternative = 'greater')
-        res$SE <- sd(dif) / sqrt(length(dif))
         res$statistic <- test_result$statistic
         res$p.value <- test_result$p.value
         res$ci.lo <- test_result$conf.int[1]
