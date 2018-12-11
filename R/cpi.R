@@ -6,7 +6,7 @@
 #' @param resampling Resampling description object, name of resampling strategy, "oob" (out-of-bag) or "none" (in-sample loss).
 #' @param test_data External validation data, use instead of resampling.
 #' @param measure Performance measure. 
-#' @param test Statistical test to perform, either "t" (t-test) or "fisher" (Fisher permuation test).
+#' @param test Statistical test to perform, either "t" (t-test), "fisher" (Fisher permuation test) or "bayes" (Bayesian testing, computationally intensive!). 
 #' @param permute Permute the feature of interest. Set to \code{FALSE} to drop the feature of interest.
 #' @param log Set to \code{TRUE} for multiplicative CPI (\eqn{\lambda}), to \code{FALSE} for additive CPI (\eqn{\Delta}). 
 #' @param B Number of permutations for Fisher permutation test.
@@ -14,7 +14,7 @@
 #' @param verbose Verbose output of resampling procedure.
 #' @param cores Number CPU cores used.
 #'
-#' @return \code{data.frame} with a row for each feature and columns:
+#' @return For \code{test = "bayes"} a list of \code{BEST} objects. In any other cases a \code{data.frame} with a row for each feature and columns:
 #'   \item{Variable}{Variable name}
 #'   \item{CPI}{CPI value}
 #'   \item{SE}{Standard error}
@@ -29,18 +29,27 @@
 #' library(mlr)
 #' # Regression with linear model
 #' cpi(task = bh.task, learner = makeLearner("regr.lm"), 
-#'         resampling = makeResampleDesc("Holdout"))
+#'     resampling = makeResampleDesc("Holdout"))
 #' 
 #' # Classification with logistic regression, log-loss and subsampling
 #' cpi(task = iris.task, 
-#'         learner = makeLearner("classif.glmnet", predict.type = "prob"), 
-#'         resampling = makeResampleDesc("CV", iters = 5), 
-#'         measure = "logloss", test = "t")
+#'     learner = makeLearner("classif.glmnet", predict.type = "prob"), 
+#'     resampling = makeResampleDesc("CV", iters = 5), 
+#'     measure = "logloss", test = "t")
 #'  
 #' # Random forest with out-of-bag error               
 #' cpi(task = bh.task, learner = makeLearner("regr.ranger", num.trees = 50), 
-#'         resampling = "oob", measure = "mse", test = "t")
-#'         
+#'     resampling = "oob", measure = "mse", test = "t")
+#'  
+#' \dontrun{
+#' # Bayesian testing
+#' res <- cpi(task = iris.task, 
+#'            learner = makeLearner("classif.glmnet", predict.type = "prob"), 
+#'            resampling = makeResampleDesc("Holdout"), 
+#'            measure = "logloss", test = "bayes")
+#' plot(res$Petal.Length)
+#' }   
+#' 
 cpi <- function(task, learner, 
                 resampling = NULL,
                 test_data = NULL,
@@ -69,6 +78,12 @@ cpi <- function(task, learner,
   if (!is.null(test)) {
     if (!(measure$id %in% c("mse", "mae", "mmce", "logloss", "brier"))) {
       stop("Statistical testing currently only implemented for 'mse', 'mae', 'mmce', 'logloss' and 'brier' measures.")
+    }
+    if (test == "bayes") {
+      if (!requireNamespace("BEST", quietly = TRUE)) {
+        stop("Package \"BEST\" needed for Bayesian testing. Please install it.",
+             call. = FALSE)
+      }
     }
   }
   
@@ -146,6 +161,9 @@ cpi <- function(task, learner,
         res$statistic <- test_result$statistic
         res$p.value <- test_result$p.value
         res$ci.lo <- test_result$conf.int[1]
+      } else if (test == "bayes") {
+        res <- list(BEST::BESTmcmc(dif, parallel = FALSE, verbose = FALSE))
+        names(res) <- getTaskFeatureNames(task)[i]
       } else {
         stop("Unknown test.")
       }
@@ -153,12 +171,19 @@ cpi <- function(task, learner,
     res
   }
   
+  # Different return value for Bayesian testing
+  if (test == "bayes") {
+    .combine = c
+  } else {
+    .combine = rbind
+  }
+  
   # Run in parallel if >1 cores
   j <- NULL
   if (cores == 1) {
-    foreach(j = seq_len(getTaskNFeats(task)), .combine = rbind) %do% cpi_fun(j)
+    foreach(j = seq_len(getTaskNFeats(task)), .combine = .combine) %do% cpi_fun(j)
   } else {
-    foreach(j = seq_len(getTaskNFeats(task)), .combine = rbind) %dopar% cpi_fun(j)
+    foreach(j = seq_len(getTaskNFeats(task)), .combine = .combine) %dopar% cpi_fun(j)
   }
 }
 

@@ -19,7 +19,7 @@ cpi(task, learner, resampling = NULL, test_data = NULL,
 
 \item{measure}{Performance measure.}
 
-\item{test}{Statistical test to perform, either "t" (t-test) or "fisher" (Fisher permuation test).}
+\item{test}{Statistical test to perform, either "t" (t-test), "fisher" (Fisher permuation test) or "bayes" (Bayesian testing, computationally intensive!).}
 
 \item{permute}{Permute the feature of interest. Set to \code{FALSE} to drop the feature of interest.}
 
@@ -34,7 +34,7 @@ cpi(task, learner, resampling = NULL, test_data = NULL,
 \item{cores}{Number CPU cores used.}
 }
 \value{
-\code{data.frame} with a row for each feature and columns:
+For \code{test = "bayes"} a list of \code{BEST} objects. In any other cases a \code{data.frame} with a row for each feature and columns:
   \item{Variable}{Variable name}
   \item{CPI}{CPI value}
   \item{SE}{Standard error}
@@ -49,16 +49,25 @@ Conditional Predictive Impact (CPI) for mlr.
 library(mlr)
 # Regression with linear model
 cpi(task = bh.task, learner = makeLearner("regr.lm"), 
-        resampling = makeResampleDesc("Holdout"))
+    resampling = makeResampleDesc("Holdout"))
 
 # Classification with logistic regression, log-loss and subsampling
 cpi(task = iris.task, 
-        learner = makeLearner("classif.glmnet", predict.type = "prob"), 
-        resampling = makeResampleDesc("CV", iters = 5), 
-        measure = "logloss", test = "t")
+    learner = makeLearner("classif.glmnet", predict.type = "prob"), 
+    resampling = makeResampleDesc("CV", iters = 5), 
+    measure = "logloss", test = "t")
  
 # Random forest with out-of-bag error               
 cpi(task = bh.task, learner = makeLearner("regr.ranger", num.trees = 50), 
-        resampling = "oob", measure = "mse", test = "t")
-        
+    resampling = "oob", measure = "mse", test = "t")
+ 
+\dontrun{
+# Bayesian testing
+res <- cpi(task = iris.task, 
+           learner = makeLearner("classif.glmnet", predict.type = "prob"), 
+           resampling = makeResampleDesc("Holdout"), 
+           measure = "logloss", test = "bayes")
+plot(res$Petal.Length)
+}   
+
 }
