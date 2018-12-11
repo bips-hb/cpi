@@ -41,6 +41,13 @@
 #' cpi(task = bh.task, learner = makeLearner("regr.ranger", num.trees = 50), 
 #'     resampling = "oob", measure = "mse", test = "t")
 #'  
+#' # Use your own data
+#' mytask <- makeClassifTask(data = iris, target = "Species")
+#' mylearner <- makeLearner("classif.ranger")
+#' cpi(task = mytask, learner = mylearner, 
+#'     resampling = makeResampleDesc("Subsample", iters = 5), 
+#'     measure = "mmce", test = "fisher")
+#'     
 #' \dontrun{
 #' # Bayesian testing
 #' res <- cpi(task = iris.task, 
