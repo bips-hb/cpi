@@ -7,7 +7,6 @@
 #' @param test_data External validation data, use instead of resampling.
 #' @param measure Performance measure. 
 #' @param test Statistical test to perform, either "t" (t-test), "fisher" (Fisher permuation test) or "bayes" (Bayesian testing, computationally intensive!). 
-#' @param permute Permute the feature of interest. Set to \code{FALSE} to drop the feature of interest.
 #' @param log Set to \code{TRUE} for multiplicative CPI (\eqn{\lambda}), to \code{FALSE} for additive CPI (\eqn{\Delta}). 
 #' @param B Number of permutations for Fisher permutation test.
 #' @param alpha Significance level for confidence intervals.
@@ -24,6 +23,7 @@
 #' 
 #' @export
 #' @import stats mlr foreach
+#' @importFrom knockoff create.second_order
 #'
 #' @examples 
 #' library(mlr)
@@ -36,10 +36,6 @@
 #'     learner = makeLearner("classif.glmnet", predict.type = "prob"), 
 #'     resampling = makeResampleDesc("CV", iters = 5), 
 #'     measure = "logloss", test = "t")
-#'  
-#' # Random forest with out-of-bag error               
-#' cpi(task = bh.task, learner = makeLearner("regr.ranger", num.trees = 50), 
-#'     resampling = "oob", measure = "mse", test = "t")
 #'  
 #' # Use your own data
 #' mytask <- makeClassifTask(data = iris, target = "Species")
@@ -62,7 +58,6 @@ cpi <- function(task, learner,
                 test_data = NULL,
                 measure = NULL,
                 test = "t",
-                permute = TRUE,
                 log = TRUE,
                 B = 10000,
                 alpha = 0.05, 
@@ -107,52 +102,59 @@ cpi <- function(task, learner,
     }
   } else if (is.list(resampling)) {
     resample_instance <- makeResampleInstance(desc = resampling, task = task)
-  } else if (resampling %in% c("oob", "none")) {
+  } else if (resampling %in% c("none")) {
     resample_instance <- resampling
   } else {
     stop("Unknown resampling value.")
   }
   
   # Fit learner and compute performance
-  pred_full <- fit_learner(learner = learner, task = task, resampling = resample_instance, measure = measure, test_data = test_data, verbose = verbose)
+  fit_full <- fit_learner(learner = learner, task = task, resampling = resample_instance, measure = measure, test_data = test_data, verbose = verbose)
+  pred_full <- fit_full$pred
+  mod_full <- fit_full$mod
   aggr_full <- performance(pred_full, measure)
   if (!is.null(test)) {
     err_full <- compute_loss(pred_full, measure)
   }
   
+  # Generate knockoff data
+  if (is.null(test_data)) {
+    x_tilde <- knockoff::create.second_order(as.matrix(getTaskData(task)[, getTaskFeatureNames(task)]))
+  } else {
+    test_data_x_tilde <- knockoff::create.second_order(as.matrix(test_data[, getTaskFeatureNames(task)]))
+  }
+  
   # For each feature, fit reduced model and return difference in error
   cpi_fun <- function(i) {
-    if (permute) {
+    if (is.null(test_data)) {
+      reduced_test_data <- NULL
       reduced_data <- getTaskData(task)
-      reduced_data[, getTaskFeatureNames(task)[i]] <- sample(reduced_data[, getTaskFeatureNames(task)[i]])
+      reduced_data[, getTaskFeatureNames(task)[i]] <- x_tilde[, getTaskFeatureNames(task)[i]]
       reduced_task <- changeData(task, reduced_data)
     } else {
-      reduced_task <- subsetTask(task, features = getTaskFeatureNames(task)[-i])
+      reduced_task <- NULL
+      reduced_test_data <- test_data
+      reduced_test_data[, getTaskFeatureNames(task)[i]] <- test_data_x_tilde[, getTaskFeatureNames(task)[i]]
     }
     
-    pred_reduced <- fit_learner(learner = learner, task = reduced_task, resampling = resample_instance, measure = measure, test_data = test_data, verbose = verbose)
-    aggr_reduced <- performance(pred_reduced, measure)
-    
-    if (log) { 
-      cpi <- log(aggr_reduced / aggr_full)
+    # Predict with knockoff data
+    pred_reduced <- predict_learner(mod_full, reduced_task, resampling = resample_instance, test_data = reduced_test_data)
+    err_reduced <- compute_loss(pred_reduced, measure)
+    if (log) {
+      dif <- log(err_reduced / err_full)
     } else {
-      cpi <- aggr_reduced - aggr_full
+      dif <- err_reduced - err_full
     }
+    cpi <- mean(dif)
+    se <- sd(dif) / sqrt(length(dif))
     
     res <- data.frame(Variable = getTaskFeatureNames(task)[i],
                       CPI = unname(cpi), 
+                      SE = unname(se),
                       stringsAsFactors = FALSE)
-
+    
     # Statistical testing
     if (!is.null(test)) {
-      err_reduced <- compute_loss(pred_reduced, measure)
-      if (log) {
-        dif <- log(err_reduced / err_full)
-      } else {
-        dif <- err_reduced - err_full
-      }
-      res$CPI <- mean(dif)
-      res$SE <- sd(dif) / sqrt(length(dif))
       if (test == "fisher") {
         orig_mean <- mean(dif)
         

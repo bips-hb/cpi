@@ -5,8 +5,8 @@
 \title{Conditional Predictive Impact (CPI) for mlr.}
 \usage{
 cpi(task, learner, resampling = NULL, test_data = NULL,
-  measure = NULL, test = "t", permute = TRUE, log = TRUE,
-  B = 10000, alpha = 0.05, verbose = FALSE, cores = 1)
+  measure = NULL, test = "t", log = TRUE, B = 10000,
+  alpha = 0.05, verbose = FALSE, cores = 1)
 }
 \arguments{
 \item{task}{The prediction task.}
@@ -20,8 +20,6 @@ cpi(task, learner, resampling = NULL, test_data = NULL,
 \item{measure}{Performance measure.}
 
 \item{test}{Statistical test to perform, either "t" (t-test), "fisher" (Fisher permuation test) or "bayes" (Bayesian testing, computationally intensive!).}
-
-\item{permute}{Permute the feature of interest. Set to \code{FALSE} to drop the feature of interest.}
 
 \item{log}{Set to \code{TRUE} for multiplicative CPI (\eqn{\lambda}), to \code{FALSE} for additive CPI (\eqn{\Delta}).}
 
@@ -56,10 +54,6 @@ cpi(task = iris.task,
     learner = makeLearner("classif.glmnet", predict.type = "prob"), 
     resampling = makeResampleDesc("CV", iters = 5), 
     measure = "logloss", test = "t")
- 
-# Random forest with out-of-bag error               
-cpi(task = bh.task, learner = makeLearner("regr.ranger", num.trees = 50), 
-    resampling = "oob", measure = "mse", test = "t")
  
 # Use your own data
 mytask <- makeClassifTask(data = iris, target = "Species")
