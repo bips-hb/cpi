@@ -46,7 +46,8 @@ Conditional Predictive Impact (CPI) for mlr.
 \examples{
 library(mlr)
 # Regression with linear model
-cpi(task = bh.task, learner = makeLearner("regr.lm"), 
+bh.task.num <- dropFeatures(bh.task, "chas")
+cpi(task = bh.task.num, learner = makeLearner("regr.lm"), 
     resampling = makeResampleDesc("Holdout"))
 
 # Classification with logistic regression, log-loss and subsampling
