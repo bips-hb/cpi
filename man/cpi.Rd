@@ -5,7 +5,7 @@
 \title{Conditional Predictive Impact (CPI) for mlr.}
 \usage{
 cpi(task, learner, resampling = NULL, test_data = NULL,
-  measure = NULL, test = "t", log = TRUE, B = 10000,
+  measure = NULL, test = "t", log = FALSE, B = 10000,
   alpha = 0.05, verbose = FALSE, cores = 1)
 }
 \arguments{

@@ -59,7 +59,7 @@ cpi <- function(task, learner,
                 test_data = NULL,
                 measure = NULL,
                 test = "t",
-                log = TRUE,
+                log = FALSE,
                 B = 10000,
                 alpha = 0.05, 
                 verbose = FALSE, 
@@ -112,7 +112,8 @@ cpi <- function(task, learner,
   
   # Fit learner and compute performance
   fit_full <- fit_learner(learner = learner, task = task, resampling = resample_instance, measure = measure, test_data = test_data, verbose = verbose)
-  err_full <- compute_loss(fit_full$pred, measure)
+  pred_full <- predict_learner(fit_full, task, resampling = resample_instance, test_data = test_data)
+  err_full <- compute_loss(pred_full, measure)
   
   # Generate knockoff data
   if (is.null(test_data)) {
@@ -135,7 +136,7 @@ cpi <- function(task, learner,
     }
     
     # Predict with knockoff data
-    pred_reduced <- predict_learner(fit_full$mod, reduced_task, resampling = resample_instance, test_data = reduced_test_data)
+    pred_reduced <- predict_learner(fit_full, reduced_task, resampling = resample_instance, test_data = reduced_test_data)
     err_reduced <- compute_loss(pred_reduced, measure)
     if (log) {
       dif <- log(err_reduced / err_full)

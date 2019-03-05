@@ -4,7 +4,12 @@ compute_loss <- function(pred, measure) {
   if ("Prediction" %in% class(pred)) {
     pred_data <- pred$data
   } else {
-    pred_data <- do.call(rbind, lapply(pred, function(x) x$data))
+    if (getTaskType(pred[[1]]) == "classif" & measure$id == "logloss") {
+      # Assure same order for classes
+      pred_data <- do.call(rbind, lapply(pred, function(x) x$data[, c("id", "truth", paste("prob", x$task.desc$class.levels, sep = "."), "response")]))
+    } else {
+      pred_data <- do.call(rbind, lapply(pred, function(x) x$data))
+    }
     pred <- pred[[1]]
   }
   truth <- pred_data$truth
@@ -26,6 +31,7 @@ compute_loss <- function(pred, measure) {
       probabilities <- pred_data[, paste("prob", pred$task.desc$class.levels, sep = ".")]
       truth <- match(as.character(truth), pred$task.desc$class.levels)
       p <- probabilities[cbind(seq_len(nrow(probabilities)), truth)]
+      p[p < 1e-15] <- 1e-15 # Avoid infinity
       loss <- -log(p)
     } else if (measure$id == "mmce") {
       # Misclassification error
@@ -37,11 +43,6 @@ compute_loss <- function(pred, measure) {
     } else {
       stop("Unknown measure.")
     }
-    
-    # Avoid 0 and 1
-    eps <- 1e-15
-    loss[loss > 1 - eps] <- 1 - eps
-    loss[loss < eps] <- eps
   } else {
     stop("Unknown task type.")
   }
