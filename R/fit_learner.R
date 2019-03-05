@@ -27,6 +27,7 @@ fit_learner <- function(learner, task, resampling = NULL, measure = NULL, test_d
   list(pred = pred, mod = mod)
 }
 
+# Internal function to predict and compute prediction error
 predict_learner <- function(mod, task, resampling = NULL, test_data = NULL) {
   if (!is.null(test_data)) {
     # Compute error on test data
@@ -39,12 +40,6 @@ predict_learner <- function(mod, task, resampling = NULL, test_data = NULL) {
   } else if (resampling == "none") {
     # Compute error on training data
     pred <- predict(mod, task)
-  # } else if (resampling == "oob") {
-  #   # Use OOB predictions if available
-  #   if (!hasLearnerProperties(mod$learner, "oobpreds")) {
-  #     stop("OOB error not available for this learner.")
-  #   }
-  #   pred <- getOOBPreds(mod, task)
   } else {
     stop("Unknown value for 'resampling'.")
   }

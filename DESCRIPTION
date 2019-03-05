@@ -2,7 +2,7 @@ Package: cpi
 Type: Package
 Title: Conditional Predictive Impact
 Version: 0.0.2
-Date: 2019-03-04
+Date: 2019-03-05
 Author: David S. Watson, Marvin N. Wright
 Maintainer: Marvin N. Wright <cran@wrig.de>
 Description: A general test for conditional independence in supervised learning algorithms. 

@@ -3,7 +3,7 @@
 #'
 #' @param task The prediction task. 
 #' @param learner The learner. If you pass a string the learner will be created via \link{makeLearner}.
-#' @param resampling Resampling description object, name of resampling strategy, "oob" (out-of-bag) or "none" (in-sample loss).
+#' @param resampling Resampling description object, mlr resampling strategy (e.g. \code{makeResampleDesc("Holdout")}), or "none" (in-sample loss).
 #' @param test_data External validation data, use instead of resampling.
 #' @param measure Performance measure. 
 #' @param test Statistical test to perform, either "t" (t-test), "fisher" (Fisher permuation test) or "bayes" (Bayesian testing, computationally intensive!). 
@@ -77,15 +77,16 @@ cpi <- function(task, learner,
     measure <- eval(parse(text = measure))
   }
   
-  if (!is.null(test)) {
-    if (!(measure$id %in% c("mse", "mae", "mmce", "logloss", "brier"))) {
-      stop("Statistical testing currently only implemented for 'mse', 'mae', 'mmce', 'logloss' and 'brier' measures.")
-    }
-    if (test == "bayes") {
-      if (!requireNamespace("BEST", quietly = TRUE)) {
-        stop("Package \"BEST\" needed for Bayesian testing. Please install it.",
-             call. = FALSE)
-      }
+  if (!(measure$id %in% c("mse", "mae", "mmce", "logloss", "brier"))) {
+    stop("Currently only implemented for 'mse', 'mae', 'mmce', 'logloss' and 'brier' measures.")
+  }
+  if (!(test %in% c("t", "fisher"))) {
+    stop("Currently only t-test (\"t\") and Fisher's exact test (\"fisher\") implemented.")
+  }
+  if (test == "bayes") {
+    if (!requireNamespace("BEST", quietly = TRUE)) {
+      stop("Package \"BEST\" needed for Bayesian testing. Please install it.",
+           call. = FALSE)
     }
   }
   
@@ -110,12 +111,7 @@ cpi <- function(task, learner,
   
   # Fit learner and compute performance
   fit_full <- fit_learner(learner = learner, task = task, resampling = resample_instance, measure = measure, test_data = test_data, verbose = verbose)
-  pred_full <- fit_full$pred
-  mod_full <- fit_full$mod
-  aggr_full <- performance(pred_full, measure)
-  if (!is.null(test)) {
-    err_full <- compute_loss(pred_full, measure)
-  }
+  err_full <- compute_loss(fit_full$pred, measure)
   
   # Generate knockoff data
   if (is.null(test_data)) {
@@ -138,7 +134,7 @@ cpi <- function(task, learner,
     }
     
     # Predict with knockoff data
-    pred_reduced <- predict_learner(mod_full, reduced_task, resampling = resample_instance, test_data = reduced_test_data)
+    pred_reduced <- predict_learner(fit_full$mod, reduced_task, resampling = resample_instance, test_data = reduced_test_data)
     err_reduced <- compute_loss(pred_reduced, measure)
     if (log) {
       dif <- log(err_reduced / err_full)
@@ -154,28 +150,26 @@ cpi <- function(task, learner,
                       stringsAsFactors = FALSE)
     
     # Statistical testing
-    if (!is.null(test)) {
-      if (test == "fisher") {
-        orig_mean <- mean(dif)
-        
-        # B permutations
-        perm_means <- replicate(B, {
-          signs <- sample(c(-1, 1), length(dif), replace = TRUE)
-          mean(signs * dif)
-        })
-        res$p.value <- sum(perm_means >= orig_mean)/B
-        res$ci.lo <- orig_mean - quantile(perm_means, 1 - alpha)
-      } else if (test == "t") {
-        test_result <- t.test(dif, alternative = 'greater')
-        res$statistic <- test_result$statistic
-        res$p.value <- test_result$p.value
-        res$ci.lo <- test_result$conf.int[1]
-      } else if (test == "bayes") {
-        res <- list(BEST::BESTmcmc(dif, parallel = FALSE, verbose = FALSE))
-        names(res) <- getTaskFeatureNames(task)[i]
-      } else {
-        stop("Unknown test.")
-      }
+    if (test == "fisher") {
+      orig_mean <- mean(dif)
+      
+      # B permutations
+      perm_means <- replicate(B, {
+        signs <- sample(c(-1, 1), length(dif), replace = TRUE)
+        mean(signs * dif)
+      })
+      res$p.value <- sum(perm_means >= orig_mean)/B
+      res$ci.lo <- orig_mean - quantile(perm_means, 1 - alpha)
+    } else if (test == "t") {
+      test_result <- t.test(dif, alternative = 'greater')
+      res$statistic <- test_result$statistic
+      res$p.value <- test_result$p.value
+      res$ci.lo <- test_result$conf.int[1]
+    } else if (test == "bayes") {
+      res <- list(BEST::BESTmcmc(dif, parallel = FALSE, verbose = FALSE))
+      names(res) <- getTaskFeatureNames(task)[i]
+    } else {
+      stop("Unknown test.")
     }
     res
   }

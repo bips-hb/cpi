@@ -5,7 +5,7 @@ compute_loss <- function(pred, measure) {
     pred_data <- pred$data
   } else {
     pred_data <- do.call(rbind, lapply(pred, function(x) x$data))
-    pred_data <- pred_data[sort(pred_data$id), ]
+    pred_data <- pred_data[order(pred_data$id), ]
     pred <- pred[[1]]
   }
   truth <- pred_data$truth
