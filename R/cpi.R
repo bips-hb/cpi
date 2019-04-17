@@ -10,6 +10,7 @@
 #' @param log Set to \code{TRUE} for multiplicative CPI (\eqn{\lambda}), to \code{FALSE} for additive CPI (\eqn{\Delta}). 
 #' @param B Number of permutations for Fisher permutation test.
 #' @param alpha Significance level for confidence intervals.
+#' @param x_tilde Knockoff matrix. If not given (the default), it will be created with \link{create.second_order}.
 #' @param verbose Verbose output of resampling procedure.
 #' @param cores Number CPU cores used.
 #'
@@ -62,6 +63,7 @@ cpi <- function(task, learner,
                 log = FALSE,
                 B = 10000,
                 alpha = 0.05, 
+                x_tilde = NULL,
                 verbose = FALSE, 
                 cores = 1) {
   if (is.null(measure)) {
@@ -116,12 +118,27 @@ cpi <- function(task, learner,
   err_full <- compute_loss(pred_full, measure)
   
   # Generate knockoff data
-  if (is.null(test_data)) {
-    x_tilde <- knockoff::create.second_order(as.matrix(getTaskData(task)[, getTaskFeatureNames(task)]))
+  if (is.null(x_tilde)) {
+    if (is.null(test_data)) {
+      x_tilde <- knockoff::create.second_order(as.matrix(getTaskData(task)[, getTaskFeatureNames(task)]))
+    } else {
+      test_data_x_tilde <- knockoff::create.second_order(as.matrix(test_data[, getTaskFeatureNames(task)]))
+    }
+  } else if (is.matrix(x_tilde)) {
+    if (is.null(test_data)) {
+      if (any(dim(x_tilde) != dim(as.matrix(getTaskData(task)[, getTaskFeatureNames(task)])))) {
+        stop("Size of 'x_tilde' must match dimensions of data.")
+      }
+    } else {
+      if (any(dim(x_tilde) != dim(as.matrix(test_data[, getTaskFeatureNames(task)])))) {
+        stop("Size of 'x_tilde' must match dimensions of data.")
+      }
+      test_data_x_tilde <- x_tilde
+    }
   } else {
-    test_data_x_tilde <- knockoff::create.second_order(as.matrix(test_data[, getTaskFeatureNames(task)]))
+    stop("Argument 'x_tilde' must be a matrix or NULL.")
   }
-  
+
   # For each feature, fit reduced model and return difference in error
   cpi_fun <- function(i) {
     if (is.null(test_data)) {

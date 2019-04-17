@@ -6,7 +6,7 @@
 \usage{
 cpi(task, learner, resampling = NULL, test_data = NULL,
   measure = NULL, test = "t", log = FALSE, B = 10000,
-  alpha = 0.05, verbose = FALSE, cores = 1)
+  alpha = 0.05, x_tilde = NULL, verbose = FALSE, cores = 1)
 }
 \arguments{
 \item{task}{The prediction task.}
@@ -26,6 +26,8 @@ cpi(task, learner, resampling = NULL, test_data = NULL,
 \item{B}{Number of permutations for Fisher permutation test.}
 
 \item{alpha}{Significance level for confidence intervals.}
+
+\item{x_tilde}{Knockoff matrix. If not given (the default), it will be created with \link{create.second_order}.}
 
 \item{verbose}{Verbose output of resampling procedure.}
 
