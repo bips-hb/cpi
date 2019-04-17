@@ -5,15 +5,15 @@
 \title{Conditional Predictive Impact (CPI) for mlr.}
 \usage{
 cpi(task, learner, resampling = NULL, test_data = NULL,
-  measure = NULL, test = "t", permute = TRUE, log = TRUE,
-  B = 10000, alpha = 0.05, verbose = FALSE, cores = 1)
+  measure = NULL, test = "t", log = FALSE, B = 10000,
+  alpha = 0.05, x_tilde = NULL, verbose = FALSE, cores = 1)
 }
 \arguments{
 \item{task}{The prediction task.}
 
 \item{learner}{The learner. If you pass a string the learner will be created via \link{makeLearner}.}
 
-\item{resampling}{Resampling description object, name of resampling strategy, "oob" (out-of-bag) or "none" (in-sample loss).}
+\item{resampling}{Resampling description object, mlr resampling strategy (e.g. \code{makeResampleDesc("Holdout")}), or "none" (in-sample loss).}
 
 \item{test_data}{External validation data, use instead of resampling.}
 
@@ -21,13 +21,13 @@ cpi(task, learner, resampling = NULL, test_data = NULL,
 
 \item{test}{Statistical test to perform, either "t" (t-test), "fisher" (Fisher permuation test) or "bayes" (Bayesian testing, computationally intensive!).}
 
-\item{permute}{Permute the feature of interest. Set to \code{FALSE} to drop the feature of interest.}
-
 \item{log}{Set to \code{TRUE} for multiplicative CPI (\eqn{\lambda}), to \code{FALSE} for additive CPI (\eqn{\Delta}).}
 
 \item{B}{Number of permutations for Fisher permutation test.}
 
 \item{alpha}{Significance level for confidence intervals.}
+
+\item{x_tilde}{Knockoff matrix. If not given (the default), it will be created with \link{create.second_order}.}
 
 \item{verbose}{Verbose output of resampling procedure.}
 
@@ -48,7 +48,8 @@ Conditional Predictive Impact (CPI) for mlr.
 \examples{
 library(mlr)
 # Regression with linear model
-cpi(task = bh.task, learner = makeLearner("regr.lm"), 
+bh.task.num <- dropFeatures(bh.task, "chas")
+cpi(task = bh.task.num, learner = makeLearner("regr.lm"), 
     resampling = makeResampleDesc("Holdout"))
 
 # Classification with logistic regression, log-loss and subsampling
@@ -56,10 +57,6 @@ cpi(task = iris.task,
     learner = makeLearner("classif.glmnet", predict.type = "prob"), 
     resampling = makeResampleDesc("CV", iters = 5), 
     measure = "logloss", test = "t")
- 
-# Random forest with out-of-bag error               
-cpi(task = bh.task, learner = makeLearner("regr.ranger", num.trees = 50), 
-    resampling = "oob", measure = "mse", test = "t")
  
 # Use your own data
 mytask <- makeClassifTask(data = iris, target = "Species")
