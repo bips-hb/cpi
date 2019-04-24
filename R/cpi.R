@@ -3,7 +3,7 @@
 #'
 #' @param task The prediction task. 
 #' @param learner The learner. If you pass a string the learner will be created via \link{makeLearner}.
-#' @param resampling Resampling description object, mlr resampling strategy (e.g. \code{makeResampleDesc("Holdout")}), or "none" (in-sample loss).
+#' @param resampling Resampling description object, mlr resampling strategy (e.g. \code{makeResampleDesc("Holdout")}), "oob" (out-of-bag) or "none" (in-sample loss).
 #' @param test_data External validation data, use instead of resampling.
 #' @param measure Performance measure. 
 #' @param test Statistical test to perform, either "t" (t-test), "fisher" (Fisher permuation test) or "bayes" (Bayesian testing, computationally intensive!). 
@@ -106,7 +106,7 @@ cpi <- function(task, learner,
     }
   } else if (is.list(resampling)) {
     resample_instance <- makeResampleInstance(desc = resampling, task = task)
-  } else if (resampling %in% c("none")) {
+  } else if (resampling %in% c("none", "oob")) {
     resample_instance <- resampling
   } else {
     stop("Unknown resampling value.")
