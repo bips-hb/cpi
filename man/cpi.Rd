@@ -13,7 +13,7 @@ cpi(task, learner, resampling = NULL, test_data = NULL,
 
 \item{learner}{The learner. If you pass a string the learner will be created via \link{makeLearner}.}
 
-\item{resampling}{Resampling description object, mlr resampling strategy (e.g. \code{makeResampleDesc("Holdout")}), or "none" (in-sample loss).}
+\item{resampling}{Resampling description object, mlr resampling strategy (e.g. \code{makeResampleDesc("Holdout")}), "oob" (out-of-bag) or "none" (in-sample loss).}
 
 \item{test_data}{External validation data, use instead of resampling.}
 
