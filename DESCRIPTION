@@ -10,7 +10,7 @@ Description: A general test for conditional independence in supervised learning 
   learning algorithm and loss function. Provides statistical inference procedures without 
   parametric assumptions and applies equally well to continuous and categorical predictors 
   and outcomes.
-License: MIT + file LICENSE
+License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.1.2
