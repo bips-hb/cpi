@@ -2,48 +2,83 @@
 % Please edit documentation in R/cpi.R
 \name{cpi}
 \alias{cpi}
-\title{Conditional Predictive Impact (CPI) for mlr.}
+\title{Conditional Predictive Impact (CPI)}
 \usage{
-cpi(task, learner, resampling = NULL, test_data = NULL,
-  measure = NULL, test = "t", log = FALSE, B = 10000,
-  alpha = 0.05, x_tilde = NULL, verbose = FALSE, cores = 1)
+cpi(
+  task,
+  learner,
+  resampling = NULL,
+  test_data = NULL,
+  measure = NULL,
+  test = "t",
+  log = FALSE,
+  B = 1999,
+  alpha = 0.05,
+  x_tilde = NULL,
+  verbose = FALSE,
+  cores = 1
+)
 }
 \arguments{
 \item{task}{The prediction task.}
 
-\item{learner}{The learner. If you pass a string the learner will be created via \link{makeLearner}.}
+\item{learner}{The learner. If you pass a string the learner will be created 
+via \link{makeLearner}.}
 
-\item{resampling}{Resampling description object, mlr resampling strategy (e.g. \code{makeResampleDesc("Holdout")}), "oob" (out-of-bag) or "none" (in-sample loss).}
+\item{resampling}{Resampling description object, mlr resampling strategy 
+(e.g. \code{makeResampleDesc("Holdout")}), "oob" (out-of-bag) or "none" 
+(in-sample loss).}
 
 \item{test_data}{External validation data, use instead of resampling.}
 
 \item{measure}{Performance measure.}
 
-\item{test}{Statistical test to perform, either "t" (t-test), "fisher" (Fisher permuation test) or "bayes" (Bayesian testing, computationally intensive!).}
+\item{test}{Statistical test to perform, one of \code{"t"} (t-test, default), 
+\code{"wilcox"} (Wilcoxon signed-rank test), \code{"binom"} (binomial 
+test), \code{"fisher"} (Fisher permutation test) or "bayes" 
+(Bayesian testing, computationally intensive!). See Details.}
 
-\item{log}{Set to \code{TRUE} for multiplicative CPI (\eqn{\lambda}), to \code{FALSE} for additive CPI (\eqn{\Delta}).}
+\item{log}{Set to \code{TRUE} for multiplicative CPI (\eqn{\lambda}), to 
+\code{FALSE} for additive CPI (\eqn{\Delta}).}
 
 \item{B}{Number of permutations for Fisher permutation test.}
 
 \item{alpha}{Significance level for confidence intervals.}
 
-\item{x_tilde}{Knockoff matrix. If not given (the default), it will be created with \link{create.second_order}.}
+\item{x_tilde}{Knockoff matrix. If not given (the default), it will be 
+created with \link{create.second_order}.}
 
 \item{verbose}{Verbose output of resampling procedure.}
 
-\item{cores}{Number CPU cores used.}
+\item{cores}{Number of CPU cores used.}
 }
 \value{
-For \code{test = "bayes"} a list of \code{BEST} objects. In any other cases a \code{data.frame} with a row for each feature and columns:
-  \item{Variable}{Variable name}
-  \item{CPI}{CPI value}
-  \item{SE}{Standard error}
-  \item{statistic}{Test statistic (t-test only)}
-  \item{p.value}{p-value}
-  \item{ci.lo}{Lower limit of confidence interval}
+
 }
 \description{
-Conditional Predictive Impact (CPI) for mlr.
+Conditional Predictive Impact (CPI)
+}
+\details{
+This function computes the conditional predictive impact (CPI) of one or
+several features on a given supervised learning task. This represents the 
+mean error inflation when replacing a true variable with its knockoff. Large
+CPI values are evidence that the feature(s) in question have high 
+\emph{conditional variable importance} -- i.e., the fitted model relies on 
+the feature(s) to predict the outcome, even after accounting for the signal
+from all remaining covariates. 
+
+We build on the \code{mlr} framework, which provides a unified interface for 
+training models, specifying loss functions, and estimating generalization 
+error. See the package documentation for more info.
+
+Methods are implemented for frequentist and Bayesian inference. The default
+is \code{test = "t"}, which is fast and powerful for most sample sizes. The
+Wilcoxon signed-rank test may be more appropriate if the CPI distribution is 
+skewed, while the binomial test requires basically no assumptions but may
+have less power. For small sample sizes, we recommend permutation tests 
+(\code{test = "fisher"}) or Bayesian methods (\code{test = "bayes"}). In
+the latter case, default priors are assumed. See the \code{BEST} package for
+more info.
 }
 \examples{
 library(mlr)
@@ -73,5 +108,8 @@ res <- cpi(task = iris.task,
            measure = "logloss", test = "bayes")
 plot(res$Petal.Length)
 }   
+
+}
+\references{
 
 }

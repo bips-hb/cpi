@@ -1,30 +1,72 @@
-
-#' Conditional Predictive Impact (CPI) for mlr.
+#' Conditional Predictive Impact (CPI)
 #'
 #' @param task The prediction task. 
-#' @param learner The learner. If you pass a string the learner will be created via \link{makeLearner}.
-#' @param resampling Resampling description object, mlr resampling strategy (e.g. \code{makeResampleDesc("Holdout")}), "oob" (out-of-bag) or "none" (in-sample loss).
+#' @param learner The learner. If you pass a string the learner will be created 
+#'   via \link{makeLearner}.
+#' @param resampling Resampling description object, mlr resampling strategy 
+#'   (e.g. \code{makeResampleDesc("Holdout")}), "oob" (out-of-bag) or "none" 
+#'   (in-sample loss).
 #' @param test_data External validation data, use instead of resampling.
 #' @param measure Performance measure. 
-#' @param test Statistical test to perform, either "t" (t-test), "fisher" (Fisher permuation test) or "bayes" (Bayesian testing, computationally intensive!). 
-#' @param log Set to \code{TRUE} for multiplicative CPI (\eqn{\lambda}), to \code{FALSE} for additive CPI (\eqn{\Delta}). 
+#' @param test Statistical test to perform, one of \code{"t"} (t-test, default), 
+#'   \code{"wilcox"} (Wilcoxon signed-rank test), \code{"binom"} (binomial 
+#'   test), \code{"fisher"} (Fisher permutation test) or "bayes" 
+#'   (Bayesian testing, computationally intensive!). See Details.
+#' @param log Set to \code{TRUE} for multiplicative CPI (\eqn{\lambda}), to 
+#'   \code{FALSE} for additive CPI (\eqn{\Delta}). 
 #' @param B Number of permutations for Fisher permutation test.
 #' @param alpha Significance level for confidence intervals.
-#' @param x_tilde Knockoff matrix. If not given (the default), it will be created with \link{create.second_order}.
+#' @param x_tilde Knockoff matrix. If not given (the default), it will be 
+#'   created with \link{create.second_order}.
 #' @param verbose Verbose output of resampling procedure.
-#' @param cores Number CPU cores used.
+#' @param cores Number of CPU cores used.
 #'
-#' @return For \code{test = "bayes"} a list of \code{BEST} objects. In any other cases a \code{data.frame} with a row for each feature and columns:
+#' @return For \code{test = "bayes"} a list of \code{BEST} objects. In any other 
+#'   case, a \code{data.frame} with a row for each feature and columns:
 #'   \item{Variable}{Variable name}
 #'   \item{CPI}{CPI value}
 #'   \item{SE}{Standard error}
-#'   \item{statistic}{Test statistic (t-test only)}
+#'   \item{test}{Testing method}
+#'   \item{statistic}{Test statistic (only for t-test)}
 #'   \item{p.value}{p-value}
-#'   \item{ci.lo}{Lower limit of confidence interval}
+#'   \item{estimate}{Estimated mean (for t-test), median (for Wilcoxon test),
+#'     or proportion of \eqn{\Delta}-values greater than 0 (for binomial test).}
+#'   \item{ci.lo}{Lower limit of (1 - \code{alpha}) * 100% confidence interval}
 #' 
 #' @export
 #' @import stats mlr foreach
 #' @importFrom knockoff create.second_order
+#'
+#' @details 
+#' This function computes the conditional predictive impact (CPI) of one or
+#' several features on a given supervised learning task. This represents the 
+#' mean error inflation when replacing a true variable with its knockoff. Large
+#' CPI values are evidence that the feature(s) in question have high 
+#' \emph{conditional variable importance} -- i.e., the fitted model relies on 
+#' the feature(s) to predict the outcome, even after accounting for the signal
+#' from all remaining covariates. 
+#' 
+#' We build on the \code{mlr} framework, which provides a unified interface for 
+#' training models, specifying loss functions, and estimating generalization 
+#' error. See the package documentation for more info.
+#' 
+#' Methods are implemented for frequentist and Bayesian inference. The default
+#' is \code{test = "t"}, which is fast and powerful for most sample sizes. The
+#' Wilcoxon signed-rank test may be more appropriate if the CPI distribution is 
+#' skewed, while the binomial test requires basically no assumptions but may
+#' have less power. For small sample sizes, we recommend permutation tests 
+#' (\code{test = "fisher"}) or Bayesian methods (\code{test = "bayes"}). In
+#' the latter case, default priors are assumed. See the \code{BEST} package for
+#' more info.
+#' 
+#' @references
+#' Watson, D. & Wright, M. (2020). Testing conditional independence in 
+#' supervised learning algorithms. \emph{Machine Learning}, \emph{110}(8): 
+#' 2107-2129. \href{https://link.springer.com/article/10.1007%2Fs10994-021-06030-6}{URL}
+#' 
+#' Candès, E., Fan, Y., Janson, L, & Lv, J. (2018). {Panning for gold: 'model-X'
+#' knockoffs for high dimensional controlled variable selection}. \emph{J. R. 
+#' Statistc. Soc. B}, \emph{80}(3): 551-577. \href{https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12265}{URL}
 #'
 #' @examples 
 #' library(mlr)
@@ -61,7 +103,7 @@ cpi <- function(task, learner,
                 measure = NULL,
                 test = "t",
                 log = FALSE,
-                B = 10000,
+                B = 1999,
                 alpha = 0.05, 
                 x_tilde = NULL,
                 verbose = FALSE, 
@@ -113,7 +155,8 @@ cpi <- function(task, learner,
   }
   
   # Fit learner and compute performance
-  fit_full <- fit_learner(learner = learner, task = task, resampling = resample_instance, measure = measure, test_data = test_data, verbose = verbose)
+  fit_full <- fit_learner(learner = learner, task = task, resampling = resample_instance, 
+                          measure = measure, test_data = test_data, verbose = verbose)
   pred_full <- predict_learner(fit_full, task, resampling = resample_instance, test_data = test_data)
   err_full <- compute_loss(pred_full, measure)
   
@@ -166,27 +209,37 @@ cpi <- function(task, learner,
     res <- data.frame(Variable = getTaskFeatureNames(task)[i],
                       CPI = unname(cpi), 
                       SE = unname(se),
+                      test = unname(test),
                       stringsAsFactors = FALSE)
     
     # Statistical testing
     if (test == "fisher") {
       orig_mean <- mean(dif)
-      
       # B permutations
       perm_means <- replicate(B, {
         signs <- sample(c(-1, 1), length(dif), replace = TRUE)
         mean(signs * dif)
       })
-      res$p.value <- sum(perm_means >= orig_mean)/B
+      res$p.value <- (sum(perm_means >= orig_mean) + 1)/(B + 1)
       res$ci.lo <- orig_mean - quantile(perm_means, 1 - alpha)
-    } else if (test == "t") {
-      test_result <- t.test(dif, alternative = 'greater')
-      res$statistic <- test_result$statistic
-      res$p.value <- test_result$p.value
-      res$ci.lo <- test_result$conf.int[1]
     } else if (test == "bayes") {
       res <- list(BEST::BESTmcmc(dif, parallel = FALSE, verbose = FALSE))
       names(res) <- getTaskFeatureNames(task)[i]
+    } else if (test %in% c('t', 'wilcox', 'binom')) {
+      if (test == "t") {
+      test_result <- t.test(dif, alternative = 'greater', 
+                            conf.level = 1 - alpha)
+      res$statistic <- test_result$statistic
+      } else if (test == "wilcox") {
+        test_result <- wilcox.test(dif, alternative = 'greater', conf.int = TRUE,
+                                   conf.level = 1 - alpha)
+      } else if (test == "binom") {
+        test_result <- binom.test(sum(dif > 0), length(dif), alternative = 'greater', 
+                                  conf.level = 1 - alpha)
+      } 
+      res$p.value <- test_result$p.value
+      res$estimate <- test_result$estimate
+      res$ci.lo <- test_result$conf.int[1]
     } else {
       stop("Unknown test.")
     }
