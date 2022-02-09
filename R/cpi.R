@@ -21,8 +21,9 @@
 #' @param verbose Verbose output of resampling procedure.
 #' @param cores Number of CPU cores used.
 #'
-#' @return For \code{test = "bayes"} a list of \code{BEST} objects. In any other 
-#'   case, a \code{data.frame} with a row for each feature and columns:
+#' @return 
+#' For \code{test = "bayes"} a list of \code{BEST} objects. In any other 
+#' case, a \code{data.frame} with a row for each feature and columns:
 #'   \item{Variable}{Variable name}
 #'   \item{CPI}{CPI value}
 #'   \item{SE}{Standard error}
