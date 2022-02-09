@@ -40,5 +40,4 @@ vignettes/*.pdf
 .Renviron
 
 # Also
-todo.R
 .Rproj.user
