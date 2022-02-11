@@ -1,2 +1,6 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^cpi\.Rcheck$
+^cpi.*\.tar\.gz$
+^cpi.*\.tgz$
+todo.R

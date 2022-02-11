@@ -41,3 +41,6 @@ vignettes/*.pdf
 
 # Also
 .Rproj.user
+cpi.Rcheck/
+cpi*.tar.gz
+cpi*.tgz
