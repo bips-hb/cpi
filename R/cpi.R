@@ -32,7 +32,7 @@
 #'   \item{p.value}{p-value}
 #'   \item{estimate}{Estimated mean (for t-test), median (for Wilcoxon test),
 #'     or proportion of \eqn{\Delta}-values greater than 0 (for binomial test).}
-#'   \item{ci.lo}{Lower limit of (1 - \code{alpha}) * 100% confidence interval}
+#'   \item{ci.lo}{Lower limit of (1 - \code{alpha}) * 100\% confidence interval}
 #' 
 #' @export
 #' @import stats mlr foreach
@@ -63,11 +63,11 @@
 #' @references
 #' Watson, D. & Wright, M. (2020). Testing conditional independence in 
 #' supervised learning algorithms. \emph{Machine Learning}, \emph{110}(8): 
-#' 2107-2129. \href{https://link.springer.com/article/10.1007%2Fs10994-021-06030-6}{URL}
+#' 2107-2129. \doi{10.1007/s10994-021-06030-6}
 #' 
 #' Candès, E., Fan, Y., Janson, L, & Lv, J. (2018). {Panning for gold: 'model-X'
 #' knockoffs for high dimensional controlled variable selection}. \emph{J. R. 
-#' Statistc. Soc. B}, \emph{80}(3): 551-577. \href{https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12265}{URL}
+#' Statistc. Soc. B}, \emph{80}(3): 551-577. \doi{10.1111/rssb.12265}
 #'
 #' @examples 
 #' library(mlr)
