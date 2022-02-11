@@ -1,19 +1,25 @@
-#' Conditional Predictive Impact (CPI)
+#' Conditional Predictive Impact (CPI). A general test for conditional 
+#' independence in supervised learning algorithms. Implements a conditional 
+#' variable importance measure which can be applied to any supervised learning 
+#' algorithm and loss function. Provides statistical inference procedures 
+#' without parametric assumptions and applies equally well to continuous and 
+#' categorical predictors and outcomes.
 #'
-#' @param task The prediction task. 
-#' @param learner The learner. If you pass a string the learner will be created 
-#'   via \link{makeLearner}.
+#' @param task The prediction \code{mlr} task, see examples.
+#' @param learner The \code{mlr} learner used in CPI. If you pass a string, the 
+#'    learner will be created via \link{makeLearner}.
 #' @param resampling Resampling description object, mlr resampling strategy 
 #'   (e.g. \code{makeResampleDesc("Holdout")}), "oob" (out-of-bag) or "none" 
 #'   (in-sample loss).
 #' @param test_data External validation data, use instead of resampling.
-#' @param measure Performance measure. 
+#' @param measure Performance measure (loss). Per default, use MSE for 
+#'    regression and logloss for classification. 
 #' @param test Statistical test to perform, one of \code{"t"} (t-test, default), 
 #'   \code{"wilcox"} (Wilcoxon signed-rank test), \code{"binom"} (binomial 
 #'   test), \code{"fisher"} (Fisher permutation test) or "bayes" 
 #'   (Bayesian testing, computationally intensive!). See Details.
 #' @param log Set to \code{TRUE} for multiplicative CPI (\eqn{\lambda}), to 
-#'   \code{FALSE} for additive CPI (\eqn{\Delta}). 
+#'   \code{FALSE} (default) for additive CPI (\eqn{\Delta}). 
 #' @param B Number of permutations for Fisher permutation test.
 #' @param alpha Significance level for confidence intervals.
 #' @param x_tilde Knockoff matrix. If not given (the default), it will be 

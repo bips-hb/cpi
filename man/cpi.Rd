@@ -2,7 +2,12 @@
 % Please edit documentation in R/cpi.R
 \name{cpi}
 \alias{cpi}
-\title{Conditional Predictive Impact (CPI)}
+\title{Conditional Predictive Impact (CPI). A general test for conditional 
+independence in supervised learning algorithms. Implements a conditional 
+variable importance measure which can be applied to any supervised learning 
+algorithm and loss function. Provides statistical inference procedures 
+without parametric assumptions and applies equally well to continuous and 
+categorical predictors and outcomes.}
 \usage{
 cpi(
   task,
@@ -20,10 +25,10 @@ cpi(
 )
 }
 \arguments{
-\item{task}{The prediction task.}
+\item{task}{The prediction \code{mlr} task, see examples.}
 
-\item{learner}{The learner. If you pass a string the learner will be created 
-via \link{makeLearner}.}
+\item{learner}{The \code{mlr} learner used in CPI. If you pass a string, the 
+learner will be created via \link{makeLearner}.}
 
 \item{resampling}{Resampling description object, mlr resampling strategy 
 (e.g. \code{makeResampleDesc("Holdout")}), "oob" (out-of-bag) or "none" 
@@ -31,7 +36,8 @@ via \link{makeLearner}.}
 
 \item{test_data}{External validation data, use instead of resampling.}
 
-\item{measure}{Performance measure.}
+\item{measure}{Performance measure (loss). Per default, use MSE for 
+regression and logloss for classification.}
 
 \item{test}{Statistical test to perform, one of \code{"t"} (t-test, default), 
 \code{"wilcox"} (Wilcoxon signed-rank test), \code{"binom"} (binomial 
@@ -39,7 +45,7 @@ test), \code{"fisher"} (Fisher permutation test) or "bayes"
 (Bayesian testing, computationally intensive!). See Details.}
 
 \item{log}{Set to \code{TRUE} for multiplicative CPI (\eqn{\lambda}), to 
-\code{FALSE} for additive CPI (\eqn{\Delta}).}
+\code{FALSE} (default) for additive CPI (\eqn{\Delta}).}
 
 \item{B}{Number of permutations for Fisher permutation test.}
 
@@ -66,7 +72,12 @@ case, a \code{data.frame} with a row for each feature and columns:
   \item{ci.lo}{Lower limit of (1 - \code{alpha}) * 100\% confidence interval}
 }
 \description{
-Conditional Predictive Impact (CPI)
+Conditional Predictive Impact (CPI). A general test for conditional 
+independence in supervised learning algorithms. Implements a conditional 
+variable importance measure which can be applied to any supervised learning 
+algorithm and loss function. Provides statistical inference procedures 
+without parametric assumptions and applies equally well to continuous and 
+categorical predictors and outcomes.
 }
 \details{
 This function computes the conditional predictive impact (CPI) of one or
