@@ -53,7 +53,17 @@ created with \link{create.second_order}.}
 \item{cores}{Number of CPU cores used.}
 }
 \value{
-
+For \code{test = "bayes"} a list of \code{BEST} objects. In any other 
+case, a \code{data.frame} with a row for each feature and columns:
+  \item{Variable}{Variable name}
+  \item{CPI}{CPI value}
+  \item{SE}{Standard error}
+  \item{test}{Testing method}
+  \item{statistic}{Test statistic (only for t-test)}
+  \item{p.value}{p-value}
+  \item{estimate}{Estimated mean (for t-test), median (for Wilcoxon test),
+    or proportion of \eqn{\Delta}-values greater than 0 (for binomial test).}
+  \item{ci.lo}{Lower limit of (1 - \code{alpha}) * 100\% confidence interval}
 }
 \description{
 Conditional Predictive Impact (CPI)
@@ -111,5 +121,11 @@ plot(res$Petal.Length)
 
 }
 \references{
+Watson, D. & Wright, M. (2020). Testing conditional independence in 
+supervised learning algorithms. \emph{Machine Learning}, \emph{110}(8): 
+2107-2129. \doi{10.1007/s10994-021-06030-6}
 
+Candès, E., Fan, Y., Janson, L, & Lv, J. (2018). {Panning for gold: 'model-X'
+knockoffs for high dimensional controlled variable selection}. \emph{J. R. 
+Statistc. Soc. B}, \emph{80}(3): 551-577. \doi{10.1111/rssb.12265}
 }
