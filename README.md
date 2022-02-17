@@ -1,3 +1,6 @@
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/dswatson/cpi/workflows/check-standard/badge.svg)](https://github.com/dswatson/cpi/actions)
+<!-- badges: end -->
 
 ## Conditional Predictive Impact
 David S. Watson, Marvin N. Wright
