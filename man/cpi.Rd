@@ -16,6 +16,7 @@ cpi(
   alpha = 0.05,
   x_tilde = NULL,
   knockoff_fun = function(x) knockoff::create.second_order(as.matrix(x)),
+  groups = NULL,
   verbose = FALSE,
   cores = 1
 )
@@ -53,6 +54,9 @@ created with the function given in \code{knockoff_fun}.}
 \item{knockoff_fun}{Function to generate knockoffs. Default: 
 \code{knockoff::\link{create.second_order}} with matrix argument.}
 
+\item{groups}{(Named) list with groups. Set to \code{NULL} (default) for no
+groups, i.e. compute CPI for each feature. See examples.}
+
 \item{verbose}{Verbose output of resampling procedure.}
 
 \item{cores}{Number of CPU cores used.}
@@ -60,7 +64,7 @@ created with the function given in \code{knockoff_fun}.}
 \value{
 For \code{test = "bayes"} a list of \code{BEST} objects. In any other 
 case, a \code{data.frame} with a row for each feature and columns:
-  \item{Variable}{Variable name}
+  \item{Variable/Group}{Variable/group name}
   \item{CPI}{CPI value}
   \item{SE}{Standard error}
   \item{test}{Testing method}
@@ -125,6 +129,12 @@ mylearner <- makeLearner("regr.ranger")
 cpi(task = mytask, learner = mylearner, 
     resampling = makeResampleDesc("Holdout"), 
     knockoff_fun = seqknockoff::knockoffs_seq)
+    
+# Group CPI
+cpi(task = iris.task, 
+    learner = makeLearner("classif.glmnet", predict.type = "prob"), 
+    resampling = makeResampleDesc("CV", iters = 5), 
+    groups = list(Sepal = 1:2, Petal = 3:4))
     
 \dontrun{
 # Bayesian testing

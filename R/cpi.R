@@ -28,13 +28,15 @@
 #'   created with the function given in \code{knockoff_fun}.
 #' @param knockoff_fun Function to generate knockoffs. Default: 
 #'   \code{knockoff::\link{create.second_order}} with matrix argument.
+#' @param groups (Named) list with groups. Set to \code{NULL} (default) for no
+#'   groups, i.e. compute CPI for each feature. See examples. 
 #' @param verbose Verbose output of resampling procedure.
 #' @param cores Number of CPU cores used.
 #'
 #' @return 
 #' For \code{test = "bayes"} a list of \code{BEST} objects. In any other 
 #' case, a \code{data.frame} with a row for each feature and columns:
-#'   \item{Variable}{Variable name}
+#'   \item{Variable/Group}{Variable/group name}
 #'   \item{CPI}{CPI value}
 #'   \item{SE}{Standard error}
 #'   \item{test}{Testing method}
@@ -105,6 +107,12 @@
 #'     resampling = makeResampleDesc("Holdout"), 
 #'     knockoff_fun = seqknockoff::knockoffs_seq)
 #'     
+#' # Group CPI
+#' cpi(task = iris.task, 
+#'     learner = makeLearner("classif.glmnet", predict.type = "prob"), 
+#'     resampling = makeResampleDesc("CV", iters = 5), 
+#'     groups = list(Sepal = 1:2, Petal = 3:4))
+#'     
 #' \dontrun{
 #' # Bayesian testing
 #' res <- cpi(task = iris.task, 
@@ -124,6 +132,7 @@ cpi <- function(task, learner,
                 alpha = 0.05, 
                 x_tilde = NULL,
                 knockoff_fun = function(x) knockoff::create.second_order(as.matrix(x)),
+                groups = NULL,
                 verbose = FALSE, 
                 cores = 1) {
   if (is.null(measure)) {
@@ -156,6 +165,16 @@ cpi <- function(task, learner,
   if (getTaskType(task) == "classif") {
     if (!hasLearnerProperties(learner, "prob")) {
       stop("For classification the learner requires probability support.")
+    }
+  }
+  
+  # Check group argument
+  if (!is.null(groups)) {
+    if (!is.list(groups)) {
+      stop("Argument 'groups' is expected to be a (named) list with feature numbers, see examples.")
+    }
+    if (max(unlist(groups)) > getTaskNFeats(task) | any(unlist(groups) < 1)) {
+      stop("Feature numbers in argument 'groups' not in 1:p, where p is the number of features.")
     }
   }
   
@@ -224,11 +243,19 @@ cpi <- function(task, learner,
     cpi <- mean(dif)
     se <- sd(dif) / sqrt(length(dif))
     
-    res <- data.frame(Variable = getTaskFeatureNames(task)[i],
-                      CPI = unname(cpi), 
-                      SE = unname(se),
-                      test = unname(test),
-                      stringsAsFactors = FALSE)
+    if (is.null(groups)) {
+      res <- data.frame(Variable = getTaskFeatureNames(task)[i],
+                        CPI = unname(cpi), 
+                        SE = unname(se),
+                        test = unname(test),
+                        stringsAsFactors = FALSE)
+    } else {
+      res <- data.frame(Group = paste(i, collapse = ","),
+                        CPI = unname(cpi), 
+                        SE = unname(se),
+                        test = unname(test),
+                        stringsAsFactors = FALSE)
+    }
     
     # Statistical testing
     if (test == "fisher") {
@@ -271,13 +298,28 @@ cpi <- function(task, learner,
     .combine = rbind
   }
   
+  # If group CPI, iterate over groups
+  if (is.null(groups)) {
+    idx <- seq_len(getTaskNFeats(task))
+  } else {
+    idx <- groups
+  }
+  
   # Run in parallel if >1 cores
   j <- NULL
   if (cores == 1) {
-    foreach(j = seq_len(getTaskNFeats(task)), .combine = .combine) %do% cpi_fun(j)
+    ret <- foreach(j = idx, .combine = .combine) %do% cpi_fun(j)
   } else {
-    foreach(j = seq_len(getTaskNFeats(task)), .combine = .combine) %dopar% cpi_fun(j)
+    ret <- foreach(j = idx, .combine = .combine) %dopar% cpi_fun(j)
   }
+  
+  # If group CPI, rename groups
+  if (!is.null(groups) & !is.null(names(groups))) {
+    ret$Group <- names(groups)
+  }
+  
+  # Return CPI for all features/groups
+  ret
 }
 
 

@@ -3,5 +3,3 @@
 # Write vignette
 # Set up Github Actions
 # Add a gh-pages site
-# Implement group CPI option
-# Issues with @return and @references?
