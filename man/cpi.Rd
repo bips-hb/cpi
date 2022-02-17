@@ -15,6 +15,7 @@ cpi(
   B = 1999,
   alpha = 0.05,
   x_tilde = NULL,
+  knockoff_fun = function(x) knockoff::create.second_order(as.matrix(x)),
   verbose = FALSE,
   cores = 1
 )
@@ -46,8 +47,11 @@ test), \code{"fisher"} (Fisher permutation test) or "bayes"
 
 \item{alpha}{Significance level for confidence intervals.}
 
-\item{x_tilde}{Knockoff matrix. If not given (the default), it will be 
-created with \link{create.second_order}.}
+\item{x_tilde}{Knockoff matrix or data.frame. If not given (the default), it will be 
+created with the function given in \code{knockoff_fun}.}
+
+\item{knockoff_fun}{Function to generate knockoffs. Default: 
+\link{knockoff::create.second_order} with matrix argument.}
 
 \item{verbose}{Verbose output of resampling procedure.}
 

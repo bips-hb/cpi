@@ -24,8 +24,10 @@
 #'   \code{FALSE} (default) for additive CPI (\eqn{\Delta}). 
 #' @param B Number of permutations for Fisher permutation test.
 #' @param alpha Significance level for confidence intervals.
-#' @param x_tilde Knockoff matrix. If not given (the default), it will be 
-#'   created with \link{create.second_order}.
+#' @param x_tilde Knockoff matrix or data.frame. If not given (the default), it will be 
+#'   created with the function given in \code{knockoff_fun}.
+#' @param knockoff_fun Function to generate knockoffs. Default: 
+#'   \link{knockoff::create.second_order} with matrix argument.
 #' @param verbose Verbose output of resampling procedure.
 #' @param cores Number of CPU cores used.
 #'
@@ -115,6 +117,7 @@ cpi <- function(task, learner,
                 B = 1999,
                 alpha = 0.05, 
                 x_tilde = NULL,
+                knockoff_fun = function(x) knockoff::create.second_order(as.matrix(x)),
                 verbose = FALSE, 
                 cores = 1) {
   if (is.null(measure)) {
@@ -172,11 +175,11 @@ cpi <- function(task, learner,
   # Generate knockoff data
   if (is.null(x_tilde)) {
     if (is.null(test_data)) {
-      x_tilde <- knockoff::create.second_order(as.matrix(getTaskData(task)[, getTaskFeatureNames(task)]))
+      x_tilde <- knockoff_fun(getTaskData(task)[, getTaskFeatureNames(task)])
     } else {
-      test_data_x_tilde <- knockoff::create.second_order(as.matrix(test_data[, getTaskFeatureNames(task)]))
+      test_data_x_tilde <- knockoff_fun(test_data[, getTaskFeatureNames(task)])
     }
-  } else if (is.matrix(x_tilde)) {
+  } else if (is.matrix(x_tilde) | is.data.frame(x_tilde)) {
     if (is.null(test_data)) {
       if (any(dim(x_tilde) != dim(as.matrix(getTaskData(task)[, getTaskFeatureNames(task)])))) {
         stop("Size of 'x_tilde' must match dimensions of data.")
@@ -188,7 +191,7 @@ cpi <- function(task, learner,
       test_data_x_tilde <- x_tilde
     }
   } else {
-    stop("Argument 'x_tilde' must be a matrix or NULL.")
+    stop("Argument 'x_tilde' must be a matrix, data.frame or NULL.")
   }
 
   # For each feature, fit reduced model and return difference in error
