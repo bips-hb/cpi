@@ -4,3 +4,4 @@
 ^cpi.*\.tar\.gz$
 ^cpi.*\.tgz$
 todo.R
+^\.github$
