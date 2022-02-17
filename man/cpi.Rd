@@ -97,12 +97,12 @@ error. See the package documentation for more info.
 
 Methods are implemented for frequentist and Bayesian inference. The default
 is \code{test = "t"}, which is fast and powerful for most sample sizes. The
-Wilcoxon signed-rank test may be more appropriate if the CPI distribution is 
-skewed, while the binomial test requires basically no assumptions but may
-have less power. For small sample sizes, we recommend permutation tests 
-(\code{test = "fisher"}) or Bayesian methods (\code{test = "bayes"}). In
-the latter case, default priors are assumed. See the \code{BEST} package for
-more info.
+Wilcoxon signed-rank test (\code{test = "wilcox"}) may be more appropriate if 
+the CPI distribution is skewed, while the binomial test (\code{test = "binom"}) 
+requires basically no assumptions but may have less power. For small sample 
+sizes, we recommend permutation tests (\code{test = "fisher"}) or Bayesian 
+methods (\code{test = "bayes"}). In the latter case, default priors are 
+assumed. See the \code{BEST} package for more info.
 }
 \examples{
 library(mlr)

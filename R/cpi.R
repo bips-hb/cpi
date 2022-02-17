@@ -65,12 +65,12 @@
 #' 
 #' Methods are implemented for frequentist and Bayesian inference. The default
 #' is \code{test = "t"}, which is fast and powerful for most sample sizes. The
-#' Wilcoxon signed-rank test may be more appropriate if the CPI distribution is 
-#' skewed, while the binomial test requires basically no assumptions but may
-#' have less power. For small sample sizes, we recommend permutation tests 
-#' (\code{test = "fisher"}) or Bayesian methods (\code{test = "bayes"}). In
-#' the latter case, default priors are assumed. See the \code{BEST} package for
-#' more info.
+#' Wilcoxon signed-rank test (\code{test = "wilcox"}) may be more appropriate if 
+#' the CPI distribution is skewed, while the binomial test (\code{test = "binom"}) 
+#' requires basically no assumptions but may have less power. For small sample 
+#' sizes, we recommend permutation tests (\code{test = "fisher"}) or Bayesian 
+#' methods (\code{test = "bayes"}). In the latter case, default priors are 
+#' assumed. See the \code{BEST} package for more info.
 #' 
 #' @references
 #' Watson, D. & Wright, M. (2020). Testing conditional independence in 
@@ -152,8 +152,8 @@ cpi <- function(task, learner,
   if (!(measure$id %in% c("mse", "mae", "mmce", "logloss", "brier"))) {
     stop("Currently only implemented for 'mse', 'mae', 'mmce', 'logloss' and 'brier' measures.")
   }
-  if (!(test %in% c("t", "fisher"))) {
-    stop("Currently only t-test (\"t\") and Fisher's exact test (\"fisher\") implemented.")
+  if (!(test %in% c("t", "fisher", "bayes", "wilcox", "binom"))) {
+    stop("Unknown test in 'test' argument.")
   }
   if (test == "bayes") {
     if (!requireNamespace("BEST", quietly = TRUE)) {

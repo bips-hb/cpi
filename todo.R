@@ -1,4 +1,3 @@
-# Allow alternative inference procedures
 # Update to mlr3 framework.
 # Write vignette
 # Set up Github Actions
