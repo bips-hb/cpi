@@ -1,5 +1,5 @@
 <!-- badges: start -->
-[![R-CMD-check](https://github.com/dswatson/cpi/workflows/check-standard/badge.svg)](https://github.com/dswatson/cpi/actions)
+[![R-CMD-check](https://github.com/dswatson/cpi/workflows/R-CMD-check/badge.svg)](https://github.com/dswatson/cpi/actions)
 <!-- badges: end -->
 
 ## Conditional Predictive Impact
