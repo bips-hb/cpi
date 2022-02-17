@@ -1,4 +1,6 @@
-#' Conditional Predictive Impact (CPI). A general test for conditional 
+#' Conditional Predictive Impact (CPI). 
+#' 
+#' A general test for conditional 
 #' independence in supervised learning algorithms. Implements a conditional 
 #' variable importance measure which can be applied to any supervised learning 
 #' algorithm and loss function. Provides statistical inference procedures 

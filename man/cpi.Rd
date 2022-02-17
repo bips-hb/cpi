@@ -2,12 +2,7 @@
 % Please edit documentation in R/cpi.R
 \name{cpi}
 \alias{cpi}
-\title{Conditional Predictive Impact (CPI). A general test for conditional 
-independence in supervised learning algorithms. Implements a conditional 
-variable importance measure which can be applied to any supervised learning 
-algorithm and loss function. Provides statistical inference procedures 
-without parametric assumptions and applies equally well to continuous and 
-categorical predictors and outcomes.}
+\title{Conditional Predictive Impact (CPI).}
 \usage{
 cpi(
   task,
@@ -72,7 +67,7 @@ case, a \code{data.frame} with a row for each feature and columns:
   \item{ci.lo}{Lower limit of (1 - \code{alpha}) * 100\% confidence interval}
 }
 \description{
-Conditional Predictive Impact (CPI). A general test for conditional 
+A general test for conditional 
 independence in supervised learning algorithms. Implements a conditional 
 variable importance measure which can be applied to any supervised learning 
 algorithm and loss function. Provides statistical inference procedures 
