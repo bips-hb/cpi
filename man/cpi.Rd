@@ -51,7 +51,7 @@ test), \code{"fisher"} (Fisher permutation test) or "bayes"
 created with the function given in \code{knockoff_fun}.}
 
 \item{knockoff_fun}{Function to generate knockoffs. Default: 
-\link{knockoff::create.second_order} with matrix argument.}
+\code{knockoff::\link{create.second_order}} with matrix argument.}
 
 \item{verbose}{Verbose output of resampling procedure.}
 
@@ -107,18 +107,24 @@ bh.task.num <- dropFeatures(bh.task, "chas")
 cpi(task = bh.task.num, learner = makeLearner("regr.lm"), 
     resampling = makeResampleDesc("Holdout"))
 
-# Classification with logistic regression, log-loss and subsampling
+# Classification with logistic regression, log-loss and cross validation
 cpi(task = iris.task, 
     learner = makeLearner("classif.glmnet", predict.type = "prob"), 
     resampling = makeResampleDesc("CV", iters = 5), 
     measure = "logloss", test = "t")
  
-# Use your own data
+# Use your own data (and out-of-bag loss with random forest)
 mytask <- makeClassifTask(data = iris, target = "Species")
-mylearner <- makeLearner("classif.ranger")
+mylearner <- makeLearner("classif.ranger", predict.type = "prob", keep.inbag = TRUE)
 cpi(task = mytask, learner = mylearner, 
-    resampling = makeResampleDesc("Subsample", iters = 5), 
-    measure = "mmce", test = "fisher")
+    resampling = "oob", measure = "logloss")
+    
+# Use sequential knockoffs for categorical features
+mytask <- makeRegrTask(data = iris, target = "Petal.Length")
+mylearner <- makeLearner("regr.ranger")
+cpi(task = mytask, learner = mylearner, 
+    resampling = makeResampleDesc("Holdout"), 
+    knockoff_fun = seqknockoff::knockoffs_seq)
     
 \dontrun{
 # Bayesian testing
