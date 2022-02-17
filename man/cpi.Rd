@@ -123,13 +123,6 @@ mylearner <- makeLearner("classif.ranger", predict.type = "prob", keep.inbag = T
 cpi(task = mytask, learner = mylearner, 
     resampling = "oob", measure = "logloss")
     
-# Use sequential knockoffs for categorical features
-mytask <- makeRegrTask(data = iris, target = "Petal.Length")
-mylearner <- makeLearner("regr.ranger")
-cpi(task = mytask, learner = mylearner, 
-    resampling = makeResampleDesc("Holdout"), 
-    knockoff_fun = seqknockoff::knockoffs_seq)
-    
 # Group CPI
 cpi(task = iris.task, 
     learner = makeLearner("classif.glmnet", predict.type = "prob"), 
@@ -149,6 +142,14 @@ doParallel::registerDoParallel(4)
 cpi(task = iris.task, 
     learner = makeLearner("classif.glmnet", predict.type = "prob"), 
     resampling = makeResampleDesc("CV", iters = 5))
+    
+# Use sequential knockoffs for categorical features
+# package available here: https://github.com/kormama1/seqknockoff
+mytask <- makeRegrTask(data = iris, target = "Petal.Length")
+mylearner <- makeLearner("regr.ranger")
+cpi(task = mytask, learner = mylearner, 
+    resampling = makeResampleDesc("Holdout"), 
+    knockoff_fun = seqknockoff::knockoffs_seq)
 }   
 
 }
