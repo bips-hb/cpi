@@ -17,15 +17,14 @@ cpi(
   x_tilde = NULL,
   knockoff_fun = function(x) knockoff::create.second_order(as.matrix(x)),
   groups = NULL,
-  verbose = FALSE,
-  cores = 1
+  verbose = FALSE
 )
 }
 \arguments{
 \item{task}{The prediction \code{mlr} task, see examples.}
 
 \item{learner}{The \code{mlr} learner used in CPI. If you pass a string, the 
-learner will be created via \link{makeLearner}.}
+learner will be created via \code{mlr::\link{makeLearner}}.}
 
 \item{resampling}{Resampling description object, mlr resampling strategy 
 (e.g. \code{makeResampleDesc("Holdout")}), "oob" (out-of-bag) or "none" 
@@ -58,8 +57,6 @@ created with the function given in \code{knockoff_fun}.}
 groups, i.e. compute CPI for each feature. See examples.}
 
 \item{verbose}{Verbose output of resampling procedure.}
-
-\item{cores}{Number of CPU cores used.}
 }
 \value{
 For \code{test = "bayes"} a list of \code{BEST} objects. In any other 
@@ -103,6 +100,9 @@ requires basically no assumptions but may have less power. For small sample
 sizes, we recommend permutation tests (\code{test = "fisher"}) or Bayesian 
 methods (\code{test = "bayes"}). In the latter case, default priors are 
 assumed. See the \code{BEST} package for more info.
+
+For parallel execution, register a backend, e.g. with
+\code{doParallel::registerDoParallel()}.
 }
 \examples{
 library(mlr)
@@ -143,6 +143,12 @@ res <- cpi(task = iris.task,
            resampling = makeResampleDesc("Holdout"), 
            measure = "logloss", test = "bayes")
 plot(res$Petal.Length)
+
+# Parallel execution
+doParallel::registerDoParallel(4)
+cpi(task = iris.task, 
+    learner = makeLearner("classif.glmnet", predict.type = "prob"), 
+    resampling = makeResampleDesc("CV", iters = 5))
 }   
 
 }

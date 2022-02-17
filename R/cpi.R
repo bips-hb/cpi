@@ -9,7 +9,7 @@
 #'
 #' @param task The prediction \code{mlr} task, see examples.
 #' @param learner The \code{mlr} learner used in CPI. If you pass a string, the 
-#'    learner will be created via \link{makeLearner}.
+#'    learner will be created via \code{mlr::\link{makeLearner}}.
 #' @param resampling Resampling description object, mlr resampling strategy 
 #'   (e.g. \code{makeResampleDesc("Holdout")}), "oob" (out-of-bag) or "none" 
 #'   (in-sample loss).
@@ -31,7 +31,6 @@
 #' @param groups (Named) list with groups. Set to \code{NULL} (default) for no
 #'   groups, i.e. compute CPI for each feature. See examples. 
 #' @param verbose Verbose output of resampling procedure.
-#' @param cores Number of CPU cores used.
 #'
 #' @return 
 #' For \code{test = "bayes"} a list of \code{BEST} objects. In any other 
@@ -71,6 +70,9 @@
 #' sizes, we recommend permutation tests (\code{test = "fisher"}) or Bayesian 
 #' methods (\code{test = "bayes"}). In the latter case, default priors are 
 #' assumed. See the \code{BEST} package for more info.
+#' 
+#' For parallel execution, register a backend, e.g. with
+#' \code{doParallel::registerDoParallel()}.
 #' 
 #' @references
 #' Watson, D. & Wright, M. (2020). Testing conditional independence in 
@@ -120,6 +122,12 @@
 #'            resampling = makeResampleDesc("Holdout"), 
 #'            measure = "logloss", test = "bayes")
 #' plot(res$Petal.Length)
+#' 
+#' # Parallel execution
+#' doParallel::registerDoParallel(4)
+#' cpi(task = iris.task, 
+#'     learner = makeLearner("classif.glmnet", predict.type = "prob"), 
+#'     resampling = makeResampleDesc("CV", iters = 5))
 #' }   
 #' 
 cpi <- function(task, learner, 
@@ -133,8 +141,7 @@ cpi <- function(task, learner,
                 x_tilde = NULL,
                 knockoff_fun = function(x) knockoff::create.second_order(as.matrix(x)),
                 groups = NULL,
-                verbose = FALSE, 
-                cores = 1) {
+                verbose = FALSE) {
   if (is.null(measure)) {
     if (getTaskType(task) == "regr") {
       measure <- mse
@@ -305,12 +312,12 @@ cpi <- function(task, learner,
     idx <- groups
   }
   
-  # Run in parallel if >1 cores
+  # Run in parallel if a parallel backend is registered
   j <- NULL
-  if (cores == 1) {
-    ret <- foreach(j = idx, .combine = .combine) %do% cpi_fun(j)
-  } else {
+  if (foreach::getDoParRegistered()) {
     ret <- foreach(j = idx, .combine = .combine) %dopar% cpi_fun(j)
+  } else {
+    ret <- foreach(j = idx, .combine = .combine) %do% cpi_fun(j)
   }
   
   # If group CPI, rename groups
