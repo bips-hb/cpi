@@ -1,50 +1,39 @@
 
 # Internal function to compute sample loss
 compute_loss <- function(pred, measure) {
-  if ("Prediction" %in% class(pred)) {
-    pred_data <- pred$data
+  if (inherits(pred, "Prediction")) {
+    truth <- pred$truth
+    response <- pred$response
+    prob <- pred$prob
   } else {
-    if (getTaskType(pred[[1]]) == "classif" & measure$id == "logloss") {
-      # Assure same order for classes
-      pred_data <- do.call(rbind, lapply(pred, function(x) x$data[, c("id", "truth", paste("prob", x$task.desc$class.levels, sep = "."), "response")]))
-    } else {
-      pred_data <- do.call(rbind, lapply(pred, function(x) x$data))
-    }
-    pred <- pred[[1]]
+    truth <- do.call(c, lapply(pred, function(x) x$truth))
+    response <- do.call(c, lapply(pred, function(x) x$response))
+    prob <- do.call(rbind, lapply(pred, function(x) x$prob))
   }
-  truth <- pred_data$truth
-  response <- pred_data$response
   
-  if (getTaskType(pred) == "regr") {
-    if (measure$id == "mse") {
-      # Squared errors
-      loss <- (truth - response)^2
-    } else if (measure$id == "mae") {
-      # Absolute errors
-      loss <- abs(truth - response)
-    } else {
-      stop("Unknown measure.")
-    }
-  } else if (getTaskType(pred) == "classif") {
-    if (measure$id == "logloss") {
-      # Logloss 
-      probabilities <- pred_data[, paste("prob", pred$task.desc$class.levels, sep = ".")]
-      truth <- match(as.character(truth), pred$task.desc$class.levels)
-      p <- probabilities[cbind(seq_len(nrow(probabilities)), truth)]
-      p[p < 1e-15] <- 1e-15 # Avoid infinity
-      loss <- -log(p)
-    } else if (measure$id == "mmce") {
-      # Misclassification error
-      loss <- 1*(truth != response)
-    } else if (measure$id == "brier") {
-      # Brier score
-      y <- as.numeric(truth == pred$task.desc$positive)
-      loss <- (y - pred_data[, paste("prob", pred$task.desc$positive, sep = ".")])^2
-    } else {
-      stop("Unknown measure.")
-    }
+  if (measure$id == "regr.mse") {
+    # Squared errors
+    loss <- (truth - response)^2
+  } else if (measure$id == "regr.mae") {
+    # Absolute errors
+    loss <- abs(truth - response)
+  } else if (measure$id == "classif.logloss") {
+    # Logloss 
+    eps <- 1e-15
+    ii <- match(as.character(truth), colnames(prob))
+    p <- prob[cbind(seq_len(nrow(prob)), ii)]
+    p <- pmax(eps, pmin(1 - eps, p))
+    loss <- -log(p)
+  } else if (measure$id == "classif.ce") {
+    # Misclassification error
+    loss <- 1*(truth != response)
+  } else if (measure$id == "classif.bbrier") {
+    # Brier score
+    # First level is positive class
+    y <- as.numeric(as.numeric(truth) == 1)
+    loss <- (y - prob[, 1])^2
   } else {
-    stop("Unknown task type.")
+    stop("Unknown measure.")
   }
   
   loss

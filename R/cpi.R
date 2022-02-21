@@ -7,15 +7,16 @@
 #' without parametric assumptions and applies equally well to continuous and 
 #' categorical predictors and outcomes.
 #'
-#' @param task The prediction \code{mlr} task, see examples.
-#' @param learner The \code{mlr} learner used in CPI. If you pass a string, the 
-#'    learner will be created via \code{mlr::\link{makeLearner}}.
-#' @param resampling Resampling description object, mlr resampling strategy 
-#'   (e.g. \code{makeResampleDesc("Holdout")}), "oob" (out-of-bag) or "none" 
+#' @param task The prediction \code{mlr3} task, see examples.
+#' @param learner The \code{mlr3} learner used in CPI. If you pass a string, the 
+#'    learner will be created via \code{mlr3::\link{lrn}}.
+#' @param resampling Resampling strategy, \code{mlr3} resampling object 
+#'   (e.g. \code{rsmp("holdout")}), "oob" (out-of-bag) or "none" 
 #'   (in-sample loss).
 #' @param test_data External validation data, use instead of resampling.
-#' @param measure Performance measure (loss). Per default, use MSE for 
-#'    regression and logloss for classification. 
+#' @param measure Performance measure (loss). Per default, use MSE 
+#'    (\code{"regr.mse"}) for regression and logloss (\code{"classif.logloss"}) 
+#'    for classification. 
 #' @param test Statistical test to perform, one of \code{"t"} (t-test, default), 
 #'   \code{"wilcox"} (Wilcoxon signed-rank test), \code{"binom"} (binomial 
 #'   test), \code{"fisher"} (Fisher permutation test) or "bayes" 
@@ -46,7 +47,7 @@
 #'   \item{ci.lo}{Lower limit of (1 - \code{alpha}) * 100\% confidence interval}
 #' 
 #' @export
-#' @import stats mlr foreach
+#' @import stats mlr3 foreach
 #' @importFrom knockoff create.second_order
 #'
 #' @details 
@@ -58,7 +59,7 @@
 #' the feature(s) to predict the outcome, even after accounting for the signal
 #' from all remaining covariates. 
 #' 
-#' We build on the \code{mlr} framework, which provides a unified interface for 
+#' We build on the \code{mlr3} framework, which provides a unified interface for 
 #' training models, specifying loss functions, and estimating generalization 
 #' error. See the package documentation for more info.
 #' 
@@ -84,50 +85,49 @@
 #' Statistc. Soc. B}, \emph{80}(3): 551-577. \doi{10.1111/rssb.12265}
 #'
 #' @examples 
-#' library(mlr)
+#' library(mlr3)
 #' # Regression with linear model
-#' bh.task.num <- dropFeatures(bh.task, "chas")
-#' cpi(task = bh.task.num, learner = makeLearner("regr.lm"), 
-#'     resampling = makeResampleDesc("Holdout"))
+#' cpi(task = tsk("boston_housing"), learner = lrn("regr.lm"), 
+#'     resampling = rsmp("holdout"))
 #' 
 #' # Classification with logistic regression, log-loss and cross validation
-#' cpi(task = iris.task, 
-#'     learner = makeLearner("classif.glmnet", predict.type = "prob"), 
-#'     resampling = makeResampleDesc("CV", iters = 5), 
-#'     measure = "logloss", test = "t")
+#' cpi(task = tsk("iris"), 
+#'     learner = lrn("classif.glmnet", predict.type = "prob", lambda = 0.1), 
+#'     resampling = rsmp("cv", folds = 5), 
+#'     measure = "classif.logloss", test = "t")
 #'  
 #' # Use your own data (and out-of-bag loss with random forest)
-#' mytask <- makeClassifTask(data = iris, target = "Species")
-#' mylearner <- makeLearner("classif.ranger", predict.type = "prob", keep.inbag = TRUE)
+#' mytask <- as_task_classif(iris, target = "Species")
+#' mylearner <- lrn("classif.ranger", predict_type = "prob", keep.inbag = TRUE)
 #' cpi(task = mytask, learner = mylearner, 
-#'     resampling = "oob", measure = "logloss")
+#'     resampling = "oob", measure = "classif.logloss")
 #'     
 #' # Group CPI
 #' cpi(task = iris.task, 
-#'     learner = makeLearner("classif.glmnet", predict.type = "prob"), 
-#'     resampling = makeResampleDesc("CV", iters = 5), 
+#'     learner = lrn("classif.glmnet", predict.type = "prob", lambda = 0.1), 
+#'     resampling = rsmp("cv", folds = 5), 
 #'     groups = list(Sepal = 1:2, Petal = 3:4))
 #'     
 #' \dontrun{
 #' # Bayesian testing
-#' res <- cpi(task = iris.task, 
-#'            learner = makeLearner("classif.glmnet", predict.type = "prob"), 
-#'            resampling = makeResampleDesc("Holdout"), 
-#'            measure = "logloss", test = "bayes")
+#' res <- cpi(task = tsk("iris"), 
+#'            learner = lrn("classif.glmnet", predict.type = "prob", lambda = 0.1), 
+#'            resampling = rsmp("Holdout"), 
+#'            measure = "classif.logloss", test = "bayes")
 #' plot(res$Petal.Length)
 #' 
 #' # Parallel execution
 #' doParallel::registerDoParallel(4)
 #' cpi(task = iris.task, 
-#'     learner = makeLearner("classif.glmnet", predict.type = "prob"), 
-#'     resampling = makeResampleDesc("CV", iters = 5))
+#'     learner = lrn("classif.glmnet", predict.type = "prob", lambda = 0.1), 
+#'     resampling = rsmp("cv", folds = 5))
 #'     
 #' # Use sequential knockoffs for categorical features
 #' # package available here: https://github.com/kormama1/seqknockoff
-#' mytask <- makeRegrTask(data = iris, target = "Petal.Length")
-#' mylearner <- makeLearner("regr.ranger")
+#' mytask <- as_task_regr(data = iris, target = "Petal.Length")
+#' mylearner <- lrn("regr.ranger")
 #' cpi(task = mytask, learner = mylearner, 
-#'     resampling = makeResampleDesc("Holdout"), 
+#'     resampling = rsmp("Holdout"), 
 #'     knockoff_fun = seqknockoff::knockoffs_seq)
 #' }   
 #' 
@@ -143,22 +143,28 @@ cpi <- function(task, learner,
                 knockoff_fun = function(x) knockoff::create.second_order(as.matrix(x)),
                 groups = NULL,
                 verbose = FALSE) {
+  
+  if (verbose) {
+    lgr::get_logger("mlr3")$set_threshold("info")
+  } else {
+    lgr::get_logger("mlr3")$set_threshold("warn")
+  }
+  
   if (is.null(measure)) {
-    if (getTaskType(task) == "regr") {
-      measure <- mse
-    } else if (getTaskType(task) == "classif") {
-      measure <- logloss
+    if (task$task_type == "regr") {
+      measure <- msr("regr.mse")
+    } else if (task$task_type == "classif") {
+      measure <- msr("classif.logloss")
     } else {
       stop("Unknown task type.")
     }
   }
-  
   if (is.character(measure)) {
-    measure <- eval(parse(text = measure))
+    measure <- msr(measure)
   }
   
-  if (!(measure$id %in% c("mse", "mae", "mmce", "logloss", "brier"))) {
-    stop("Currently only implemented for 'mse', 'mae', 'mmce', 'logloss' and 'brier' measures.")
+  if (!(measure$id %in% c("regr.mse", "regr.mae", "classif.ce", "classif.logloss", "classif.bbrier"))) {
+    stop("Currently only implemented for 'regr.mse', 'regr.mae', 'classif.ce', 'classif.logloss' and 'classif.bbrier' measures.")
   }
   if (!(test %in% c("t", "fisher", "bayes", "wilcox", "binom"))) {
     stop("Unknown test in 'test' argument.")
@@ -170,18 +176,18 @@ cpi <- function(task, learner,
     }
   }
   
-  if (getTaskType(task) == "classif") {
-    if (!hasLearnerProperties(learner, "prob")) {
-      stop("For classification the learner requires probability support.")
-    }
-  }
+  # if (getTaskType(task) == "classif") {
+  #   if (!("prob" %in% learner$properties)) {
+  #     stop("For classification the learner requires probability support.")
+  #   }
+  # }
   
   # Check group argument
   if (!is.null(groups)) {
     if (!is.list(groups)) {
       stop("Argument 'groups' is expected to be a (named) list with feature numbers, see examples.")
     }
-    if (max(unlist(groups)) > getTaskNFeats(task) | any(unlist(groups) < 1)) {
+    if (max(unlist(groups)) > length(task$feature_names) | any(unlist(groups) < 1)) {
       stop("Feature numbers in argument 'groups' not in 1:p, where p is the number of features.")
     }
   }
@@ -191,34 +197,34 @@ cpi <- function(task, learner,
     if (is.null(test_data)) {
       stop("Either resampling or test_data argument required.")
     }
-  } else if (is.list(resampling)) {
-    resample_instance <- makeResampleInstance(desc = resampling, task = task)
+  } else if (inherits(resampling, "Resampling")) {
+    resampling$instantiate(task)
   } else if (resampling %in% c("none", "oob")) {
-    resample_instance <- resampling
+    # Do nothing
   } else {
     stop("Unknown resampling value.")
   }
   
   # Fit learner and compute performance
-  fit_full <- fit_learner(learner = learner, task = task, resampling = resample_instance, 
+  fit_full <- fit_learner(learner = learner, task = task, resampling = resampling, 
                           measure = measure, test_data = test_data, verbose = verbose)
-  pred_full <- predict_learner(fit_full, task, resampling = resample_instance, test_data = test_data)
+  pred_full <- predict_learner(fit_full, task, resampling = resampling, test_data = test_data)
   err_full <- compute_loss(pred_full, measure)
   
   # Generate knockoff data
   if (is.null(x_tilde)) {
     if (is.null(test_data)) {
-      x_tilde <- knockoff_fun(getTaskData(task)[, getTaskFeatureNames(task)])
+      x_tilde <- knockoff_fun(task$data(cols = task$feature_names))
     } else {
-      test_data_x_tilde <- knockoff_fun(test_data[, getTaskFeatureNames(task)])
+      test_data_x_tilde <- knockoff_fun(test_data[, task$feature_names])
     }
   } else if (is.matrix(x_tilde) | is.data.frame(x_tilde)) {
     if (is.null(test_data)) {
-      if (any(dim(x_tilde) != dim(as.matrix(getTaskData(task)[, getTaskFeatureNames(task)])))) {
+      if (any(dim(x_tilde) != dim(task$data(cols = task$feature_names)))) {
         stop("Size of 'x_tilde' must match dimensions of data.")
       }
     } else {
-      if (any(dim(x_tilde) != dim(as.matrix(test_data[, getTaskFeatureNames(task)])))) {
+      if (any(dim(x_tilde) != dim(test_data[, task$feature_names]))) {
         stop("Size of 'x_tilde' must match dimensions of data.")
       }
       test_data_x_tilde <- x_tilde
@@ -231,17 +237,23 @@ cpi <- function(task, learner,
   cpi_fun <- function(i) {
     if (is.null(test_data)) {
       reduced_test_data <- NULL
-      reduced_data <- getTaskData(task)
-      reduced_data[, getTaskFeatureNames(task)[i]] <- x_tilde[, getTaskFeatureNames(task)[i]]
-      reduced_task <- changeData(task, reduced_data)
+      reduced_data <- as.data.frame(task$data())
+      reduced_data[, task$feature_names[i]] <- x_tilde[, task$feature_names[i]]
+      if (task$task_type == "regr") {
+        reduced_task <- as_task_regr(reduced_data, target = task$target_names)
+      } else if (task$task_type == "classif") {
+        reduced_task <- as_task_classif(reduced_data, target = task$target_names)
+      } else {
+        stop("Unknown task type.")
+      }
     } else {
       reduced_task <- NULL
       reduced_test_data <- test_data
-      reduced_test_data[, getTaskFeatureNames(task)[i]] <- test_data_x_tilde[, getTaskFeatureNames(task)[i]]
+      reduced_test_data[, task$feature_names[i]] <- test_data_x_tilde[, task$feature_names[i]]
     }
     
     # Predict with knockoff data
-    pred_reduced <- predict_learner(fit_full, reduced_task, resampling = resample_instance, test_data = reduced_test_data)
+    pred_reduced <- predict_learner(fit_full, reduced_task, resampling = resampling, test_data = reduced_test_data)
     err_reduced <- compute_loss(pred_reduced, measure)
     if (log) {
       dif <- log(err_reduced / err_full)
@@ -250,9 +262,9 @@ cpi <- function(task, learner,
     }
     cpi <- mean(dif)
     se <- sd(dif) / sqrt(length(dif))
-    
+
     if (is.null(groups)) {
-      res <- data.frame(Variable = getTaskFeatureNames(task)[i],
+      res <- data.frame(Variable = task$feature_names[i],
                         CPI = unname(cpi), 
                         SE = unname(se),
                         test = unname(test),
@@ -277,7 +289,7 @@ cpi <- function(task, learner,
       res$ci.lo <- orig_mean - quantile(perm_means, 1 - alpha)
     } else if (test == "bayes") {
       res <- list(BEST::BESTmcmc(dif, parallel = FALSE, verbose = FALSE))
-      names(res) <- getTaskFeatureNames(task)[i]
+      names(res) <- task$feature_names[i]
     } else if (test %in% c('t', 'wilcox', 'binom')) {
       if (test == "t") {
       test_result <- t.test(dif, alternative = 'greater', 
@@ -308,7 +320,7 @@ cpi <- function(task, learner,
   
   # If group CPI, iterate over groups
   if (is.null(groups)) {
-    idx <- seq_len(getTaskNFeats(task))
+    idx <- seq_len(length(task$feature_names))
   } else {
     idx <- groups
   }

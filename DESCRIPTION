@@ -16,7 +16,7 @@ LazyData: true
 RoxygenNote: 7.1.2
 URL: https://github.com/dswatson/cpi
 BugReports: https://github.com/dswatson/cpi/issues
-Imports: foreach, mlr, knockoff
+Imports: foreach, mlr3, knockoff
 Suggests: 
     BEST,
     ranger,
