@@ -44,3 +44,4 @@ vignettes/*.pdf
 cpi.Rcheck/
 cpi*.tar.gz
 cpi*.tgz
+inst/doc

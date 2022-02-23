@@ -1,0 +1,105 @@
+---
+title: "Introduction to the cpi package"
+author: "Marvin N. Wright"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{intro}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+set.seed(2022)
+```
+
+# Get started
+The Conditional Predictive Impact (CPI) is a general test for conditional independence in supervised learning algorithms. It implements a conditional variable importance measure which can be applied to any supervised learning algorithm and loss function. 
+
+As a first example, we calculate the CPI for a random forest on the iris data with 5-fold cross validation: 
+
+```{r first_example}
+library(mlr3)
+library(mlr3learners)
+library(cpi)
+
+cpi(task = tsk("iris"), 
+    learner = lrn("classif.ranger", predict_type = "prob"),
+    resampling = rsmp("cv", folds = 5))
+```
+The result is a CPI value for each feature, i.e. how much did the loss function change when the feature was replaced with its knockoff version, with corresponding standard errors, test statistics, p-values and confidence interval. 
+
+# Interface with mlr3
+The task, learner and resampling strategy are specified with the *mlr3* package, which provides a unified interface for machine learning tasks and makes it quite easy to change these components. For example, we can change to regularized logistic regression and a simple holdout as resampling strategy:
+
+```{r glmnet_example}
+cpi(task = tsk("iris"), 
+    learner = lrn("classif.glmnet", predict_type = "prob", lambda = 0.01),
+    resampling = rsmp("holdout"))
+```
+
+We refer to [the mlr3 book](https://mlr3book.mlr-org.com/) for full introduction and reference. 
+
+The loss function used by the `cpi()` function is specified with `measure`. By default, the mean squared error (MSE) is used for regression and log-loss for classification. In *mlr3*, this corresponds to the measures `"regr.mse"` and `"classif.logloss"`. We re-run the example above with simple classification error (ce): 
+
+```{r glmnet_example_ce}
+cpi(task = tsk("iris"), 
+    learner = lrn("classif.glmnet", lambda = 0.01),
+    resampling = rsmp("holdout"), 
+    measure = msr("classif.ce"))
+```
+
+Note that here we do not need `predict_type = "prob"` because the classification error uses only the hard classification. 
+
+# Statistical testing
+The CPI offers several statistical tests to be calculated: The *t*-test (`"t"`, default), Wilcoxon signed-rank test (`"wilcox"`), binomial test (`"binom"`), Fisher permutation test (`"fisher"`) and Bayesian testing (`"bayes"`) with the package *BEST*. For example, we re-run the first example with Fisher's permutation test:
+
+```{r first_example_fisher}
+cpi(task = tsk("iris"), 
+    learner = lrn("classif.ranger", predict_type = "prob"),
+    resampling = rsmp("cv", folds = 5), 
+    test = "fisher")
+```
+
+# Knockoff procedures
+The CPI relies on a valid knockoff sampler for the data to be analyzed. By default, second-order Gaussian knockoffs from the package *knockoff* are used. However, any other knockoff sampler can be used by changing the `knockoff_fun` or the `x_tilde` argument in the `cpi()` function. Here, `knockoff_fun` expects a function taking a `data.frame` with the original data as input and returning a `data.frame` with the knockoffs. For example, we use sequential knockoffs from the *seqknockoff* package^[*seqknockoff* is not on CRAN yet; available here: https://github.com/kormama1/seqknockoff]: 
+
+```{r example_seqknockoff, eval=FALSE}
+mytask <- as_task_regr(iris, target = "Petal.Length")
+cpi(task = mytask, learner = lrn("regr.ranger"), 
+    resampling = rsmp("holdout"), 
+    knockoff_fun = seqknockoff::knockoffs_seq)
+```
+
+The `x_tilde` argument directly takes the knockoff data: 
+```{r example_seqknockoff_xtilde, eval=FALSE}
+library(seqknockoff)
+x_tilde <- knockoffs_seq(iris[, -3])
+mytask <- as_task_regr(iris, target = "Petal.Length")
+cpi(task = mytask, learner = lrn("regr.ranger"), 
+    resampling = rsmp("holdout"), 
+    x_tilde = x_tilde)
+```
+
+# Group CPI
+Instead of calculating the CPI for each feature separately, we can also calculate it for groups of features by replacing data of whole groups with the respective knockoff data. In `cpi()` this can be done with the `groups` argument: 
+
+```{r glmnet_example_group}
+cpi(task = tsk("iris"), 
+    learner = lrn("classif.glmnet", predict_type = "prob", lambda = 0.01),
+    resampling = rsmp("holdout"), 
+    groups = list(Sepal = 1:2, Petal = 3:4))
+```
+
+# Parallelization
+For parallel execution, we need to register a parallel backend. Parallelization will be performed by the features, i.e. the CPI for each feature will be calculated in parallel. For example:
+```{r first_example_parallel, eval=FALSE}
+doParallel::registerDoParallel(4)
+cpi(task = tsk("iris"), 
+    learner = lrn("classif.ranger", predict_type = "prob"),
+    resampling = rsmp("cv", folds = 5))
+```
+
