@@ -178,11 +178,11 @@ cpi <- function(task, learner,
     }
   }
   
-  # if (getTaskType(task) == "classif") {
-  #   if (!("prob" %in% learner$properties)) {
-  #     stop("For classification the learner requires probability support.")
-  #   }
-  # }
+  if (task$task_type == "classif" & measure$id %in% c("classif.logloss", "classif.bbrier")) {
+    if (learner$predict_type != "prob") {
+      stop("The selected loss function requires probability support. Try predict_type = 'prob' when creating the learner.")
+    }
+  }
   
   # Check group argument
   if (!is.null(groups)) {
