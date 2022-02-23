@@ -5,3 +5,6 @@
 ^cpi.*\.tgz$
 todo.R
 ^\.github$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
