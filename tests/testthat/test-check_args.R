@@ -8,8 +8,8 @@ test_that("returns object of correct dimensions, regression", {
   expect_s3_class(res, "data.frame")
   expect_equal(dim(res), c(length(task$feature_names), 8))
   expect_equal(colnames(res), 
-               c("Variable", "CPI", "SE", "test", "statistic", "p.value", 
-                 "estimate", "ci.lo"))
+               c("Variable", "CPI", "SE", "test", "statistic", "estimate", 
+                 "p.value", "ci.lo"))
   expect_equal(res$Variable, 
                task$feature_names)
 })
@@ -22,8 +22,8 @@ test_that("returns object of correct dimensions, classification", {
   expect_s3_class(res, "data.frame")
   expect_equal(dim(res), c(length(task$feature_names), 8))
   expect_equal(colnames(res), 
-               c("Variable", "CPI", "SE", "test", "statistic", "p.value", 
-                 "estimate", "ci.lo"))
+               c("Variable", "CPI", "SE", "test", "statistic", "estimate", 
+                 "p.value", "ci.lo"))
   expect_equal(res$Variable, 
                task$feature_names)
 })
@@ -37,8 +37,8 @@ test_that("returns object of correct dimensions, group classification", {
   expect_s3_class(res, "data.frame")
   expect_equal(dim(res), c(length(groups), 8))
   expect_equal(colnames(res), 
-               c("Group", "CPI", "SE", "test", "statistic", "p.value", 
-                 "estimate", "ci.lo"))
+               c("Group", "CPI", "SE", "test", "statistic", "estimate", 
+                 "p.value", "ci.lo"))
   expect_equal(res$Group, 
                names(groups))
 })
