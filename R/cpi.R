@@ -40,12 +40,13 @@
 #'   \item{CPI}{CPI value}
 #'   \item{SE}{Standard error}
 #'   \item{test}{Testing method}
-#'   \item{statistic}{Test statistic (only for t-test)}
-#'   \item{p.value}{p-value}
+#'   \item{statistic}{Test statistic (only for t-test, Wilcoxon and binomial test)}
 #'   \item{estimate}{Estimated mean (for t-test), median (for Wilcoxon test),
 #'     or proportion of \eqn{\Delta}-values greater than 0 (for binomial test).}
+#'   \item{p.value}{p-value}
 #'   \item{ci.lo}{Lower limit of (1 - \code{alpha}) * 100\% confidence interval}
-#' 
+#' Note that NA values are no error but a result of a CPI value of 0, i.e. no 
+#' difference in model performance after replacing a feature with its knockoff.
 #' @export
 #' @import stats mlr3 foreach
 #' @importFrom knockoff create.second_order
@@ -285,7 +286,17 @@ cpi <- function(task, learner,
     }
     
     # Statistical testing
-    if (test == "fisher") {
+    if (cpi == 0) {
+      # No test if CPI==0
+      if (test != "bayes") {
+        if (test %in% c('t', 'wilcox', 'binom')) {
+          res$statistic <- NA
+          res$estimate <- NA
+        }
+        res$p.value <- NA
+        res$ci.lo <- NA
+      }
+    } else if (test == "fisher") {
       orig_mean <- mean(dif)
       # B permutations
       perm_means <- replicate(B, {
@@ -299,18 +310,18 @@ cpi <- function(task, learner,
       names(res) <- task$feature_names[i]
     } else if (test %in% c('t', 'wilcox', 'binom')) {
       if (test == "t") {
-      test_result <- t.test(dif, alternative = 'greater', 
-                            conf.level = 1 - alpha)
-      res$statistic <- test_result$statistic
+        test_result <- t.test(dif, alternative = 'greater', 
+                              conf.level = 1 - alpha)
       } else if (test == "wilcox") {
         test_result <- wilcox.test(dif, alternative = 'greater', conf.int = TRUE,
                                    conf.level = 1 - alpha)
       } else if (test == "binom") {
         test_result <- binom.test(sum(dif > 0), length(dif), alternative = 'greater', 
                                   conf.level = 1 - alpha)
-      } 
-      res$p.value <- test_result$p.value
+      }
+      res$statistic <- test_result$statistic
       res$estimate <- test_result$estimate
+      res$p.value <- test_result$p.value
       res$ci.lo <- test_result$conf.int[1]
     } else {
       stop("Unknown test.")

@@ -66,11 +66,13 @@ case, a \code{data.frame} with a row for each feature and columns:
   \item{CPI}{CPI value}
   \item{SE}{Standard error}
   \item{test}{Testing method}
-  \item{statistic}{Test statistic (only for t-test)}
-  \item{p.value}{p-value}
+  \item{statistic}{Test statistic (only for t-test, Wilcoxon and binomial test)}
   \item{estimate}{Estimated mean (for t-test), median (for Wilcoxon test),
     or proportion of \eqn{\Delta}-values greater than 0 (for binomial test).}
+  \item{p.value}{p-value}
   \item{ci.lo}{Lower limit of (1 - \code{alpha}) * 100\% confidence interval}
+Note that NA values are no error but a result of a CPI value of 0, i.e. no 
+difference in model performance after replacing a feature with its knockoff.
 }
 \description{
 A general test for conditional 
