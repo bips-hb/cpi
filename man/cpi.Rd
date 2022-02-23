@@ -107,13 +107,15 @@ For parallel execution, register a backend, e.g. with
 }
 \examples{
 library(mlr3)
+library(mlr3learners)
+
 # Regression with linear model
-cpi(task = tsk("boston_housing"), learner = lrn("regr.lm"), 
+cpi(task = tsk("mtcars"), learner = lrn("regr.lm"), 
     resampling = rsmp("holdout"))
 
 # Classification with logistic regression, log-loss and cross validation
 cpi(task = tsk("iris"), 
-    learner = lrn("classif.glmnet", predict.type = "prob", lambda = 0.1), 
+    learner = lrn("classif.glmnet", predict_type = "prob", lambda = 0.1), 
     resampling = rsmp("cv", folds = 5), 
     measure = "classif.logloss", test = "t")
  
@@ -124,31 +126,30 @@ cpi(task = mytask, learner = mylearner,
     resampling = "oob", measure = "classif.logloss")
     
 # Group CPI
-cpi(task = iris.task, 
-    learner = lrn("classif.glmnet", predict.type = "prob", lambda = 0.1), 
+cpi(task = tsk("iris"), 
+    learner = lrn("classif.glmnet", predict_type = "prob", lambda = 0.1), 
     resampling = rsmp("cv", folds = 5), 
     groups = list(Sepal = 1:2, Petal = 3:4))
     
 \dontrun{
 # Bayesian testing
 res <- cpi(task = tsk("iris"), 
-           learner = lrn("classif.glmnet", predict.type = "prob", lambda = 0.1), 
-           resampling = rsmp("Holdout"), 
+           learner = lrn("classif.glmnet", predict_type = "prob", lambda = 0.1), 
+           resampling = rsmp("holdout"), 
            measure = "classif.logloss", test = "bayes")
 plot(res$Petal.Length)
 
 # Parallel execution
 doParallel::registerDoParallel(4)
-cpi(task = iris.task, 
-    learner = lrn("classif.glmnet", predict.type = "prob", lambda = 0.1), 
+cpi(task = tsk("iris"), 
+    learner = lrn("classif.glmnet", predict_type = "prob", lambda = 0.1), 
     resampling = rsmp("cv", folds = 5))
     
 # Use sequential knockoffs for categorical features
 # package available here: https://github.com/kormama1/seqknockoff
-mytask <- as_task_regr(data = iris, target = "Petal.Length")
-mylearner <- lrn("regr.ranger")
-cpi(task = mytask, learner = mylearner, 
-    resampling = rsmp("Holdout"), 
+mytask <- as_task_regr(iris, target = "Petal.Length")
+cpi(task = mytask, learner = lrn("regr.ranger"), 
+    resampling = rsmp("holdout"), 
     knockoff_fun = seqknockoff::knockoffs_seq)
 }   
 

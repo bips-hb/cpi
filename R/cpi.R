@@ -49,6 +49,7 @@
 #' @export
 #' @import stats mlr3 foreach
 #' @importFrom knockoff create.second_order
+#' @importFrom lgr get_logger
 #'
 #' @details 
 #' This function computes the conditional predictive impact (CPI) of one or
@@ -86,13 +87,15 @@
 #'
 #' @examples 
 #' library(mlr3)
+#' library(mlr3learners)
+#' 
 #' # Regression with linear model
-#' cpi(task = tsk("boston_housing"), learner = lrn("regr.lm"), 
+#' cpi(task = tsk("mtcars"), learner = lrn("regr.lm"), 
 #'     resampling = rsmp("holdout"))
 #' 
 #' # Classification with logistic regression, log-loss and cross validation
 #' cpi(task = tsk("iris"), 
-#'     learner = lrn("classif.glmnet", predict.type = "prob", lambda = 0.1), 
+#'     learner = lrn("classif.glmnet", predict_type = "prob", lambda = 0.1), 
 #'     resampling = rsmp("cv", folds = 5), 
 #'     measure = "classif.logloss", test = "t")
 #'  
@@ -103,31 +106,30 @@
 #'     resampling = "oob", measure = "classif.logloss")
 #'     
 #' # Group CPI
-#' cpi(task = iris.task, 
-#'     learner = lrn("classif.glmnet", predict.type = "prob", lambda = 0.1), 
+#' cpi(task = tsk("iris"), 
+#'     learner = lrn("classif.glmnet", predict_type = "prob", lambda = 0.1), 
 #'     resampling = rsmp("cv", folds = 5), 
 #'     groups = list(Sepal = 1:2, Petal = 3:4))
 #'     
 #' \dontrun{
 #' # Bayesian testing
 #' res <- cpi(task = tsk("iris"), 
-#'            learner = lrn("classif.glmnet", predict.type = "prob", lambda = 0.1), 
-#'            resampling = rsmp("Holdout"), 
+#'            learner = lrn("classif.glmnet", predict_type = "prob", lambda = 0.1), 
+#'            resampling = rsmp("holdout"), 
 #'            measure = "classif.logloss", test = "bayes")
 #' plot(res$Petal.Length)
 #' 
 #' # Parallel execution
 #' doParallel::registerDoParallel(4)
-#' cpi(task = iris.task, 
-#'     learner = lrn("classif.glmnet", predict.type = "prob", lambda = 0.1), 
+#' cpi(task = tsk("iris"), 
+#'     learner = lrn("classif.glmnet", predict_type = "prob", lambda = 0.1), 
 #'     resampling = rsmp("cv", folds = 5))
 #'     
 #' # Use sequential knockoffs for categorical features
 #' # package available here: https://github.com/kormama1/seqknockoff
-#' mytask <- as_task_regr(data = iris, target = "Petal.Length")
-#' mylearner <- lrn("regr.ranger")
-#' cpi(task = mytask, learner = mylearner, 
-#'     resampling = rsmp("Holdout"), 
+#' mytask <- as_task_regr(iris, target = "Petal.Length")
+#' cpi(task = mytask, learner = lrn("regr.ranger"), 
+#'     resampling = rsmp("holdout"), 
 #'     knockoff_fun = seqknockoff::knockoffs_seq)
 #' }   
 #' 
@@ -190,6 +192,11 @@ cpi <- function(task, learner,
     if (max(unlist(groups)) > length(task$feature_names) | any(unlist(groups) < 1)) {
       stop("Feature numbers in argument 'groups' not in 1:p, where p is the number of features.")
     }
+  }
+  
+  # Check knockoffs
+  if (any(task$feature_types$type == "factor") && is.function(knockoff_fun) && deparse(knockoff_fun)[2] == "knockoff::create.second_order(as.matrix(x))") {
+    stop("Gaussian knockoffs cannot handle factor features. Consider using sequential knockoffs (see examples) or recoding factors.")
   }
   
   # Create resampling instance

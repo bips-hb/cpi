@@ -50,3 +50,10 @@ test_that("fails for wrong groups", {
       groups = list(a = 1:2, b = 5:6)), 
       "Feature numbers in argument 'groups' not in 1:p, where p is the number of features.")
 })
+
+test_that("fails with Gaussian knockoffs and factors", {
+  expect_error(cpi(task = tsk("boston_housing"), 
+                   learner = lrn("regr.lm"), 
+                   resampling = rsmp("holdout")), 
+               "Gaussian knockoffs cannot handle factor features\\. Consider using sequential knockoffs \\(see examples\\) or recoding factors\\.")
+})
