@@ -21,19 +21,20 @@ cpi(
 )
 }
 \arguments{
-\item{task}{The prediction \code{mlr} task, see examples.}
+\item{task}{The prediction \code{mlr3} task, see examples.}
 
-\item{learner}{The \code{mlr} learner used in CPI. If you pass a string, the 
-learner will be created via \code{mlr::\link{makeLearner}}.}
+\item{learner}{The \code{mlr3} learner used in CPI. If you pass a string, the 
+learner will be created via \code{mlr3::\link{lrn}}.}
 
-\item{resampling}{Resampling description object, mlr resampling strategy 
-(e.g. \code{makeResampleDesc("Holdout")}), "oob" (out-of-bag) or "none" 
+\item{resampling}{Resampling strategy, \code{mlr3} resampling object 
+(e.g. \code{rsmp("holdout")}), "oob" (out-of-bag) or "none" 
 (in-sample loss).}
 
 \item{test_data}{External validation data, use instead of resampling.}
 
-\item{measure}{Performance measure (loss). Per default, use MSE for 
-regression and logloss for classification.}
+\item{measure}{Performance measure (loss). Per default, use MSE 
+(\code{"regr.mse"}) for regression and logloss (\code{"classif.logloss"}) 
+for classification.}
 
 \item{test}{Statistical test to perform, one of \code{"t"} (t-test, default), 
 \code{"wilcox"} (Wilcoxon signed-rank test), \code{"binom"} (binomial 
@@ -88,7 +89,7 @@ CPI values are evidence that the feature(s) in question have high
 the feature(s) to predict the outcome, even after accounting for the signal
 from all remaining covariates. 
 
-We build on the \code{mlr} framework, which provides a unified interface for 
+We build on the \code{mlr3} framework, which provides a unified interface for 
 training models, specifying loss functions, and estimating generalization 
 error. See the package documentation for more info.
 
@@ -105,50 +106,50 @@ For parallel execution, register a backend, e.g. with
 \code{doParallel::registerDoParallel()}.
 }
 \examples{
-library(mlr)
+library(mlr3)
+library(mlr3learners)
+
 # Regression with linear model
-bh.task.num <- dropFeatures(bh.task, "chas")
-cpi(task = bh.task.num, learner = makeLearner("regr.lm"), 
-    resampling = makeResampleDesc("Holdout"))
+cpi(task = tsk("mtcars"), learner = lrn("regr.lm"), 
+    resampling = rsmp("holdout"))
 
 # Classification with logistic regression, log-loss and cross validation
-cpi(task = iris.task, 
-    learner = makeLearner("classif.glmnet", predict.type = "prob"), 
-    resampling = makeResampleDesc("CV", iters = 5), 
-    measure = "logloss", test = "t")
+cpi(task = tsk("iris"), 
+    learner = lrn("classif.glmnet", predict_type = "prob", lambda = 0.1), 
+    resampling = rsmp("cv", folds = 5), 
+    measure = "classif.logloss", test = "t")
  
 # Use your own data (and out-of-bag loss with random forest)
-mytask <- makeClassifTask(data = iris, target = "Species")
-mylearner <- makeLearner("classif.ranger", predict.type = "prob", keep.inbag = TRUE)
+mytask <- as_task_classif(iris, target = "Species")
+mylearner <- lrn("classif.ranger", predict_type = "prob", keep.inbag = TRUE)
 cpi(task = mytask, learner = mylearner, 
-    resampling = "oob", measure = "logloss")
+    resampling = "oob", measure = "classif.logloss")
     
 # Group CPI
-cpi(task = iris.task, 
-    learner = makeLearner("classif.glmnet", predict.type = "prob"), 
-    resampling = makeResampleDesc("CV", iters = 5), 
+cpi(task = tsk("iris"), 
+    learner = lrn("classif.glmnet", predict_type = "prob", lambda = 0.1), 
+    resampling = rsmp("cv", folds = 5), 
     groups = list(Sepal = 1:2, Petal = 3:4))
     
 \dontrun{
 # Bayesian testing
-res <- cpi(task = iris.task, 
-           learner = makeLearner("classif.glmnet", predict.type = "prob"), 
-           resampling = makeResampleDesc("Holdout"), 
-           measure = "logloss", test = "bayes")
+res <- cpi(task = tsk("iris"), 
+           learner = lrn("classif.glmnet", predict_type = "prob", lambda = 0.1), 
+           resampling = rsmp("holdout"), 
+           measure = "classif.logloss", test = "bayes")
 plot(res$Petal.Length)
 
 # Parallel execution
 doParallel::registerDoParallel(4)
-cpi(task = iris.task, 
-    learner = makeLearner("classif.glmnet", predict.type = "prob"), 
-    resampling = makeResampleDesc("CV", iters = 5))
+cpi(task = tsk("iris"), 
+    learner = lrn("classif.glmnet", predict_type = "prob", lambda = 0.1), 
+    resampling = rsmp("cv", folds = 5))
     
 # Use sequential knockoffs for categorical features
 # package available here: https://github.com/kormama1/seqknockoff
-mytask <- makeRegrTask(data = iris, target = "Petal.Length")
-mylearner <- makeLearner("regr.ranger")
-cpi(task = mytask, learner = mylearner, 
-    resampling = makeResampleDesc("Holdout"), 
+mytask <- as_task_regr(iris, target = "Petal.Length")
+cpi(task = mytask, learner = lrn("regr.ranger"), 
+    resampling = rsmp("holdout"), 
     knockoff_fun = seqknockoff::knockoffs_seq)
 }   
 

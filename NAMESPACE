@@ -2,6 +2,7 @@
 
 export(cpi)
 import(foreach)
-import(mlr)
+import(mlr3)
 import(stats)
 importFrom(knockoff,create.second_order)
+importFrom(lgr,get_logger)

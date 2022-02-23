@@ -1,8 +1,8 @@
 Package: cpi
 Type: Package
 Title: Conditional Predictive Impact
-Version: 0.0.4
-Date: 2022-02-17
+Version: 0.1.0
+Date: 2022-02-23
 Author: David S. Watson, Marvin N. Wright
 Maintainer: Marvin N. Wright <cran@wrig.de>
 Description: A general test for conditional independence in supervised learning algorithms. 
@@ -16,10 +16,14 @@ LazyData: true
 RoxygenNote: 7.1.2
 URL: https://github.com/dswatson/cpi
 BugReports: https://github.com/dswatson/cpi/issues
-Imports: foreach, mlr, knockoff
+Imports: foreach, mlr3, lgr, knockoff
 Suggests: 
     BEST,
+    mlr3learners,
     ranger,
     glmnet,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    knitr,
+    rmarkdown
 Config/testthat/edition: 3
+VignetteBuilder: knitr

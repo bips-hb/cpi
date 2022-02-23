@@ -18,14 +18,14 @@ devtools::install_github("dswatson/cpi")
 ### Examples
 Calculate CPI for random forest on iris data with 5-fold cross validation:
 ```R
-library(mlr)
+library(mlr3)
+library(mlr3learners)
 library(cpi)
 
-mytask <- makeClassifTask(data = iris, target = "Species")
-cpi(task = mytask, 
-    learner = makeLearner("classif.ranger", predict.type = "prob"),
-    resampling = makeResampleDesc("CV", iters = 5), 
-    measure = "logloss", test = "t")
+cpi(task = tsk("iris"), 
+    learner = lrn("classif.ranger", predict_type = "prob"),
+    resampling = rsmp("cv", folds = 5), 
+    measure = "classif.logloss", test = "t")
 ```
 
 ### References
