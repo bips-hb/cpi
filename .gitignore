@@ -45,3 +45,4 @@ cpi.Rcheck/
 cpi*.tar.gz
 cpi*.tgz
 inst/doc
+docs
