@@ -143,15 +143,17 @@ case, a <code>data.frame</code> with a row for each feature and columns:</p>
 <dt>test</dt>
 <dd><p>Testing method</p></dd>
 <dt>statistic</dt>
-<dd><p>Test statistic (only for t-test)</p></dd>
-<dt>p.value</dt>
-<dd><p>p-value</p></dd>
+<dd><p>Test statistic (only for t-test, Wilcoxon and binomial test)</p></dd>
 <dt>estimate</dt>
 <dd><p>Estimated mean (for t-test), median (for Wilcoxon test),
     or proportion of \(\Delta\)-values greater than 0 (for binomial test).</p></dd>
+<dt>p.value</dt>
+<dd><p>p-value</p></dd>
 <dt>ci.lo</dt>
 <dd><p>Lower limit of (1 - <code>alpha</code>) * 100% confidence interval</p></dd>
-</dl></div>
+</dl><p>Note that NA values are no error but a result of a CPI value of 0, i.e. no 
+difference in model performance after replacing a feature with its knockoff.</p>
+    </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>This function computes the conditional predictive impact (CPI) of one or
@@ -190,75 +192,93 @@ Statistc. Soc. B</em>, <em>80</em>(3): 551-577. doi: <a href="https://doi.org/10
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://mlr3.mlr-org.com" class="external-link">mlr3</a></span><span class="op">)</span></span>
 <span class="r-in"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://mlr3learners.mlr-org.com" class="external-link">mlr3learners</a></span><span class="op">)</span></span>
 <span class="r-in"></span>
-<span class="r-in"><span class="co"># Regression with linear model</span></span>
+<span class="r-in"><span class="co"># Regression with linear model and cross validation</span></span>
 <span class="r-in"><span class="fu">cpi</span><span class="op">(</span>task <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">tsk</a></span><span class="op">(</span><span class="st">"mtcars"</span><span class="op">)</span>, learner <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">lrn</a></span><span class="op">(</span><span class="st">"regr.lm"</span><span class="op">)</span>, </span>
-<span class="r-in">    resampling <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">rsmp</a></span><span class="op">(</span><span class="st">"holdout"</span><span class="op">)</span><span class="op">)</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    Variable           CPI           SE test   statistic   p.value      estimate</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1        am  3.130204e-01 4.958199e-01    t  0.63131887 0.2709964  3.130204e-01</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2      carb -1.334695e-05 4.011574e-05    t -0.33271107 0.6268890 -1.334695e-05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3       cyl -7.674866e+00 2.407064e+00    t -3.18847589 0.9951604 -7.674866e+00</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4      disp -2.585680e-03 2.257808e-03    t -1.14521672 0.8606061 -2.585680e-03</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5      drat -2.460224e+00 2.886983e+00    t -0.85217850 0.7929709 -2.460224e+00</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6      gear -4.659132e+00 2.924751e+00    t -1.59300097 0.9288779 -4.659132e+00</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 7        hp  1.245472e+00 2.752442e+00    t  0.45249722 0.3302843  1.245472e+00</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 8      qsec -1.415215e+00 9.161317e-01    t -1.54477235 0.9232827 -1.415215e+00</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 9        vs -2.355400e+00 1.453909e+00    t -1.62004564 0.9318547 -2.355400e+00</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10       wt  1.728712e-01 1.907088e+00    t  0.09064671 0.4647817  1.728712e-01</span>
+<span class="r-in">    resampling <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">rsmp</a></span><span class="op">(</span><span class="st">"cv"</span>, folds <span class="op">=</span> <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    Variable          CPI           SE test  statistic     estimate    p.value</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1        am -3.525883332 3.8043102673    t -0.9268128 -3.525883332 0.81940817</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2      carb -0.001169459 0.0008262200    t -1.4154330 -0.001169459 0.91654501</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3       cyl -2.880320010 2.7403196805    t -1.0510891 -2.880320010 0.84932866</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4      disp  0.001667323 0.0007052721    t  2.3640841  0.001667323 0.01226031</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5      drat -2.606418202 3.6643758659    t -0.7112857 -2.606418202 0.75888728</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6      gear -7.044939236 3.4360026399    t -2.0503300 -7.044939236 0.97556522</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7        hp -0.515693760 1.1020020207    t -0.4679608 -0.515693760 0.67845697</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8      qsec -2.213049744 2.1910245774    t -1.0100525 -2.213049744 0.83985529</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9        vs -1.262302913 1.1126992221    t -1.1344512 -1.262302913 0.86734913</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10       wt -1.784976983 2.1977751495    t -0.8121745 -1.784976983 0.78855766</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>            ci.lo</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1  -5.856338e-01</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2  -8.605517e-05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3  -1.203758e+01</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4  -6.677870e-03</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5  -7.692768e+00</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6  -9.960130e+00</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 7  -3.743222e+00</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 8  -3.075668e+00</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 9  -4.990554e+00</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10 -3.283652e+00</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1  -9.976163e+00</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2  -2.570331e-03</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3  -7.526583e+00</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4   4.715204e-04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5  -8.819436e+00</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6  -1.287075e+01</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7  -2.384159e+00</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8  -5.927973e+00</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9  -3.148905e+00</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10 -5.511346e+00</span>
 <span class="r-in"></span>
-<span class="r-in"><span class="co"># Classification with logistic regression, log-loss and cross validation</span></span>
-<span class="r-in"><span class="fu">cpi</span><span class="op">(</span>task <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">tsk</a></span><span class="op">(</span><span class="st">"iris"</span><span class="op">)</span>, </span>
+<span class="r-in"><span class="co"># Classification with logistic regression, log-loss and holdout</span></span>
+<span class="r-in"><span class="fu">cpi</span><span class="op">(</span>task <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">tsk</a></span><span class="op">(</span><span class="st">"wine"</span><span class="op">)</span>, </span>
 <span class="r-in">    learner <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">lrn</a></span><span class="op">(</span><span class="st">"classif.glmnet"</span>, predict_type <span class="op">=</span> <span class="st">"prob"</span>, lambda <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span>, </span>
-<span class="r-in">    resampling <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">rsmp</a></span><span class="op">(</span><span class="st">"cv"</span>, folds <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>, </span>
+<span class="r-in">    resampling <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">rsmp</a></span><span class="op">(</span><span class="st">"holdout"</span><span class="op">)</span>, </span>
 <span class="r-in">    measure <span class="op">=</span> <span class="st">"classif.logloss"</span>, test <span class="op">=</span> <span class="st">"t"</span><span class="op">)</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       Variable           CPI           SE test  statistic      p.value</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 Petal.Length -2.088854e-06 2.396937e-06    t -0.8714677 0.8075495728</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2  Petal.Width  8.340591e-04 2.311171e-03    t  0.3608815 0.3593495756</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3 Sepal.Length  0.000000e+00 0.000000e+00    t        NaN          NaN</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4  Sepal.Width  2.649363e-02 7.817222e-03    t  3.3891360 0.0004486843</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        estimate         ci.lo</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 -2.088854e-06 -6.056132e-06</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2  8.340591e-04 -2.991264e-03</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3  0.000000e+00           NaN</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4  2.649363e-02  1.355500e-02</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           Variable           CPI           SE test  statistic      estimate</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1       alcalinity  0.000000e+00 0.000000e+00    t         NA            NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2          alcohol  5.602781e-02 2.189328e-02    t  2.5591322  5.602781e-02</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3              ash  0.000000e+00 0.000000e+00    t         NA            NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4            color -6.693910e-03 7.777458e-03    t -0.8606810 -6.693910e-03</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5         dilution  1.089620e-02 1.216819e-02    t  0.8954658  1.089620e-02</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6       flavanoids  1.213061e-06 4.508335e-06    t  0.2690707  1.213061e-06</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7              hue  9.327343e-03 7.636821e-03    t  1.2213647  9.327343e-03</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8        magnesium  0.000000e+00 0.000000e+00    t         NA            NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9            malic  0.000000e+00 0.000000e+00    t         NA            NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10   nonflavanoids  0.000000e+00 0.000000e+00    t         NA            NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 11         phenols  0.000000e+00 0.000000e+00    t         NA            NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 12 proanthocyanins  0.000000e+00 0.000000e+00    t         NA            NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 13         proline  4.448078e-02 2.076518e-02    t  2.1420853  4.448078e-02</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        p.value         ci.lo</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1           NA            NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2  0.006562094  1.943203e-02</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3           NA            NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4  0.803521114 -1.969434e-02</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5  0.187119753 -9.443572e-03</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6  0.394415060 -6.322859e-06</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7  0.113444700 -3.438006e-03</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8           NA            NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9           NA            NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10          NA            NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 11          NA            NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 12          NA            NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 13 0.018198571  9.770692e-03</span>
 <span class="r-in"> </span>
 <span class="r-in"><span class="co"># Use your own data (and out-of-bag loss with random forest)</span></span>
 <span class="r-in"><span class="va">mytask</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/as_task_classif.html" class="external-link">as_task_classif</a></span><span class="op">(</span><span class="va">iris</span>, target <span class="op">=</span> <span class="st">"Species"</span><span class="op">)</span></span>
 <span class="r-in"><span class="va">mylearner</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">lrn</a></span><span class="op">(</span><span class="st">"classif.ranger"</span>, predict_type <span class="op">=</span> <span class="st">"prob"</span>, keep.inbag <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span class="r-in"><span class="fu">cpi</span><span class="op">(</span>task <span class="op">=</span> <span class="va">mytask</span>, learner <span class="op">=</span> <span class="va">mylearner</span>, </span>
 <span class="r-in">    resampling <span class="op">=</span> <span class="st">"oob"</span>, measure <span class="op">=</span> <span class="st">"classif.logloss"</span><span class="op">)</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       Variable           CPI           SE test  statistic   p.value</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 Petal.Length -2.177212e-03 0.0020600892    t -1.0568533 0.8538555</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2  Petal.Width -5.096020e-03 0.0122905073    t -0.4146305 0.6604956</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3 Sepal.Length  6.097072e-05 0.0003490978    t  0.1746523 0.4307950</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4  Sepal.Width -1.377991e-03 0.0028165985    t -0.4892395 0.6873042</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        estimate         ci.lo</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 -2.177212e-03 -0.0055869576</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 -5.096020e-03 -0.0254385857</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3  6.097072e-05 -0.0005168366</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4 -1.377991e-03 -0.0060398689</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       Variable           CPI           SE test  statistic      estimate</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 Petal.Length -0.0004117032 0.0014875889    t -0.2767587 -0.0004117032</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2  Petal.Width -0.0217535671 0.0193501693    t -1.1242055 -0.0217535671</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3 Sepal.Length -0.0002276944 0.0002559407    t -0.8896376 -0.0002276944</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4  Sepal.Width -0.0046113640 0.0051146683    t -0.9015959 -0.0046113640</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     p.value         ci.lo</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 0.6088255 -0.0028738779</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 0.8686331 -0.0537808940</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3 0.8124527 -0.0006513132</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4 0.8156367 -0.0130768793</span>
 <span class="r-in">    </span>
 <span class="r-in"><span class="co"># Group CPI</span></span>
 <span class="r-in"><span class="fu">cpi</span><span class="op">(</span>task <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">tsk</a></span><span class="op">(</span><span class="st">"iris"</span><span class="op">)</span>, </span>
-<span class="r-in">    learner <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">lrn</a></span><span class="op">(</span><span class="st">"classif.glmnet"</span>, predict_type <span class="op">=</span> <span class="st">"prob"</span>, lambda <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span>, </span>
-<span class="r-in">    resampling <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">rsmp</a></span><span class="op">(</span><span class="st">"cv"</span>, folds <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>, </span>
+<span class="r-in">    learner <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">lrn</a></span><span class="op">(</span><span class="st">"classif.ranger"</span>, predict_type <span class="op">=</span> <span class="st">"prob"</span>, num.trees <span class="op">=</span> <span class="fl">10</span><span class="op">)</span>, </span>
+<span class="r-in">    resampling <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">rsmp</a></span><span class="op">(</span><span class="st">"cv"</span>, folds <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>, </span>
 <span class="r-in">    groups <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>Sepal <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, Petal <span class="op">=</span> <span class="fl">3</span><span class="op">:</span><span class="fl">4</span><span class="op">)</span><span class="op">)</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Group          CPI          SE test statistic      p.value     estimate</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 Sepal 0.0008325623 0.002184879    t 0.3810564 0.3518520910 0.0008325623</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 Petal 0.0258880900 0.007723130    t 3.3520206 0.0005084659 0.0258880900</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Group          CPI          SE test  statistic     estimate   p.value</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 Sepal -0.005513285 0.005688627    t -0.9691767 -0.005513285 0.8329862</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 Petal -0.003523606 0.002948920    t -1.1948802 -0.003523606 0.8829839</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          ci.lo</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 -0.002783729</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2  0.013105194</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 -0.014928784</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 -0.008404494</span>
 <span class="r-in">    </span>
 <span class="r-in"><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span>
 <span class="r-in"><span class="co"># Bayesian testing</span></span>
@@ -269,8 +289,8 @@ Statistc. Soc. B</em>, <em>80</em>(3): 551-577. doi: <a href="https://doi.org/10
 <span class="r-in"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res</span><span class="op">$</span><span class="va">Petal.Length</span><span class="op">)</span></span>
 <span class="r-in"></span>
 <span class="r-in"><span class="co"># Parallel execution</span></span>
-<span class="r-in"><span class="fu">doParallel</span><span class="fu">::</span><span class="fu">registerDoParallel</span><span class="op">(</span><span class="fl">4</span><span class="op">)</span></span>
-<span class="r-in"><span class="fu">cpi</span><span class="op">(</span>task <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">tsk</a></span><span class="op">(</span><span class="st">"iris"</span><span class="op">)</span>, </span>
+<span class="r-in"><span class="fu">doParallel</span><span class="fu">::</span><span class="fu">registerDoParallel</span><span class="op">(</span><span class="op">)</span></span>
+<span class="r-in"><span class="fu">cpi</span><span class="op">(</span>task <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">tsk</a></span><span class="op">(</span><span class="st">"wine"</span><span class="op">)</span>, </span>
 <span class="r-in">    learner <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">lrn</a></span><span class="op">(</span><span class="st">"classif.glmnet"</span>, predict_type <span class="op">=</span> <span class="st">"prob"</span>, lambda <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span>, </span>
 <span class="r-in">    resampling <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">rsmp</a></span><span class="op">(</span><span class="st">"cv"</span>, folds <span class="op">=</span> <span class="fl">5</span><span class="op">)</span><span class="op">)</span></span>
 <span class="r-in">    </span>
