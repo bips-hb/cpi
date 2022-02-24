@@ -1,7 +1,7 @@
 Package: cpi
 Type: Package
 Title: Conditional Predictive Impact
-Version: 0.1.1
+Version: 0.1.2
 Date: 2022-02-24
 Authors@R: 
     c(person(given = "Marvin N.",
