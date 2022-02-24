@@ -1,0 +1,19 @@
+citHeader("To cite cpi in publications use:")
+
+citEntry(entry        = "Article",
+         title        = "Testing conditional independence in supervised learning algorithms",
+         author       = personList(as.person("David S. Watson"),
+                                   as.person("Marvin N. Wright")),
+         journal      = "Machine Learning",
+         year         = "2011",
+         volume       = "110",
+         number       = "8",
+         pages        = "2107--2129",
+         url          = "https://doi.org/10.1007/s10994-021-06030-6",
+         
+         textVersion  =
+           paste("Watson, D.S. & Wright, M.N. (2021).",
+                 "Testing conditional independence in supervised learning algorithms.",
+                 "Machine Learning 110(8):2107-2129.",
+                 "doi:10.1007/s10994-021-06030-6")
+)

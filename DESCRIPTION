@@ -1,11 +1,20 @@
 Package: cpi
 Type: Package
 Title: Conditional Predictive Impact
-Version: 0.1.0
-Date: 2022-02-23
-Author: David S. Watson, Marvin N. Wright
+Version: 0.1.1
+Date: 2022-02-24
+Authors@R: 
+    c(person(given = "Marvin N.",
+             family = "Wright",
+             role = c("aut", "cre"),
+             email = "cran@wrig.de",
+             comment = c(ORCID = "0000-0002-8542-6291")),
+      person(given = "David S.",
+             family = "Watson",
+             role = "aut"))
 Maintainer: Marvin N. Wright <cran@wrig.de>
-Description: A general test for conditional independence in supervised learning algorithms. 
+Description: A general test for conditional independence in supervised learning 
+  algorithms as proposed by Watson & Wright (2021) <doi:10.1007/s10994-021-06030-6>. 
   Implements a conditional variable importance measure which can be applied to any supervised 
   learning algorithm and loss function. Provides statistical inference procedures without 
   parametric assumptions and applies equally well to continuous and categorical predictors 
