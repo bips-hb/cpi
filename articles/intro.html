@@ -99,7 +99,7 @@
 <span class="co">#&gt; 3              ash  0.00019 0.00019    t      1.00  0.00019  0.1593 -0.00012</span>
 <span class="co">#&gt; 4            color  0.21308 0.18515    t      1.15  0.21308  0.1257 -0.09306</span>
 <span class="co">#&gt; 5         dilution  0.00046 0.00771    t      0.06  0.00046  0.4761 -0.01229</span>
-<span class="co">#&gt; 6       flavanoids  0.00000 0.00000    t        NA       NA      NA       NA</span>
+<span class="co">#&gt; 6       flavanoids  0.00000 0.00000    t      0.00  0.00000  1.0000  0.00000</span>
 <span class="co">#&gt; 7              hue  0.00151 0.00705    t      0.21  0.00151  0.4155 -0.01015</span>
 <span class="co">#&gt; 8        magnesium  0.00826 0.00494    t      1.67  0.00826  0.0480  0.00010</span>
 <span class="co">#&gt; 9            malic  0.00047 0.00412    t      0.11  0.00047  0.4551 -0.00635</span>
@@ -107,7 +107,7 @@
 <span class="co">#&gt; 11         phenols -0.00351 0.00346    t     -1.01 -0.00351  0.8441 -0.00922</span>
 <span class="co">#&gt; 12 proanthocyanins  0.00162 0.00389    t      0.42  0.00162  0.3389 -0.00481</span>
 <span class="co">#&gt; 13         proline  0.08475 0.03003    t      2.82  0.08475  0.0027  0.03509</span></code></pre></div>
-<p>The result is a CPI value for each feature, i.e. how much did the loss function change when the feature was replaced with its knockoff version, with corresponding standard errors, test statistics, p-values and confidence interval. Note that if the CPI value is exactly 0 (e.g. if a feature was never selected for splitting in a tree), the statistical test returns <code>NA</code>.</p>
+<p>The result is a CPI value for each feature, i.e. how much did the loss function change when the feature was replaced with its knockoff version, with corresponding standard errors, test statistics, p-values and confidence interval.</p>
 </div>
 <div class="section level2">
 <h2 id="interface-with-mlr3">Interface with mlr3<a class="anchor" aria-label="anchor" href="#interface-with-mlr3"></a>
@@ -125,11 +125,11 @@
 <span class="co">#&gt; 5         dilution  8.2e-03 7.2e-03    t      1.15  8.2e-03   0.128 -3.8e-03</span>
 <span class="co">#&gt; 6       flavanoids  4.0e-06 4.0e-06    t      1.01  4.0e-06   0.157 -2.6e-06</span>
 <span class="co">#&gt; 7              hue  6.4e-03 8.1e-03    t      0.79  6.4e-03   0.217 -7.1e-03</span>
-<span class="co">#&gt; 8        magnesium  0.0e+00 0.0e+00    t        NA       NA      NA       NA</span>
+<span class="co">#&gt; 8        magnesium  0.0e+00 0.0e+00    t      0.00  0.0e+00   1.000  0.0e+00</span>
 <span class="co">#&gt; 9            malic -8.0e-03 9.3e-03    t     -0.85 -8.0e-03   0.802 -2.4e-02</span>
 <span class="co">#&gt; 10   nonflavanoids -9.6e-04 2.9e-03    t     -0.33 -9.6e-04   0.627 -5.9e-03</span>
-<span class="co">#&gt; 11         phenols  0.0e+00 0.0e+00    t        NA       NA      NA       NA</span>
-<span class="co">#&gt; 12 proanthocyanins  0.0e+00 0.0e+00    t        NA       NA      NA       NA</span>
+<span class="co">#&gt; 11         phenols  0.0e+00 0.0e+00    t      0.00  0.0e+00   1.000  0.0e+00</span>
+<span class="co">#&gt; 12 proanthocyanins  0.0e+00 0.0e+00    t      0.00  0.0e+00   1.000  0.0e+00</span>
 <span class="co">#&gt; 13         proline  3.5e-03 1.8e-02    t      0.19  3.5e-03   0.424 -2.7e-02</span></code></pre></div>
 <p>We refer to <a href="https://mlr3book.mlr-org.com/" class="external-link">the mlr3 book</a> for full introduction and reference.</p>
 <p>The loss function used by the <code><a href="../reference/cpi.html">cpi()</a></code> function is specified with <code>measure</code>. By default, the mean squared error (MSE) is used for regression and log-loss for classification. In <em>mlr3</em>, this corresponds to the measures <code>"regr.mse"</code> and <code>"classif.logloss"</code>. We re-run the example above with simple classification error (ce):</p>
@@ -139,20 +139,20 @@
     resampling <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">rsmp</a></span><span class="op">(</span><span class="st">"holdout"</span><span class="op">)</span>, 
     measure <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"classif.ce"</span><span class="op">)</span><span class="op">)</span>
 <span class="co">#&gt;           Variable    CPI    SE test statistic estimate p.value  ci.lo</span>
-<span class="co">#&gt; 1       alcalinity  0.000 0.000    t        NA       NA      NA     NA</span>
+<span class="co">#&gt; 1       alcalinity  0.000 0.000    t      0.00    0.000    1.00  0.000</span>
 <span class="co">#&gt; 2          alcohol  0.017 0.030    t      0.57    0.017    0.28 -0.032</span>
-<span class="co">#&gt; 3              ash  0.000 0.000    t        NA       NA      NA     NA</span>
-<span class="co">#&gt; 4            color  0.000 0.000    t        NA       NA      NA     NA</span>
+<span class="co">#&gt; 3              ash  0.000 0.000    t      0.00    0.000    1.00  0.000</span>
+<span class="co">#&gt; 4            color  0.000 0.000    t      0.00    0.000    1.00  0.000</span>
 <span class="co">#&gt; 5         dilution -0.017 0.017    t     -1.00   -0.017    0.84 -0.045</span>
-<span class="co">#&gt; 6       flavanoids  0.000 0.000    t        NA       NA      NA     NA</span>
-<span class="co">#&gt; 7              hue  0.000 0.000    t        NA       NA      NA     NA</span>
+<span class="co">#&gt; 6       flavanoids  0.000 0.000    t      0.00    0.000    1.00  0.000</span>
+<span class="co">#&gt; 7              hue  0.000 0.000    t      0.00    0.000    1.00  0.000</span>
 <span class="co">#&gt; 8        magnesium -0.017 0.017    t     -1.00   -0.017    0.84 -0.045</span>
 <span class="co">#&gt; 9            malic -0.017 0.017    t     -1.00   -0.017    0.84 -0.045</span>
 <span class="co">#&gt; 10   nonflavanoids -0.017 0.017    t     -1.00   -0.017    0.84 -0.045</span>
-<span class="co">#&gt; 11         phenols  0.000 0.000    t        NA       NA      NA     NA</span>
-<span class="co">#&gt; 12 proanthocyanins  0.000 0.000    t        NA       NA      NA     NA</span>
+<span class="co">#&gt; 11         phenols  0.000 0.000    t      0.00    0.000    1.00  0.000</span>
+<span class="co">#&gt; 12 proanthocyanins  0.000 0.000    t      0.00    0.000    1.00  0.000</span>
 <span class="co">#&gt; 13         proline  0.017 0.045    t      0.38    0.017    0.35 -0.059</span></code></pre></div>
-<p>Here we see more <code>NA</code> values because the classification error is less sensitive to small changes and hence results in lower power.</p>
+<p>Here we see more 0 CPI values because the classification error is less sensitive to small changes and hence results in lower power.</p>
 </div>
 <div class="section level2">
 <h2 id="statistical-testing">Statistical testing<a class="anchor" aria-label="anchor" href="#statistical-testing"></a>
@@ -166,7 +166,7 @@
 <span class="co">#&gt;           Variable      CPI      SE   test p.value    ci.lo</span>
 <span class="co">#&gt; 1       alcalinity  0.00864 0.00441 fisher  0.0255  0.00131</span>
 <span class="co">#&gt; 2          alcohol  0.02225 0.01082 fisher  0.0180  0.00459</span>
-<span class="co">#&gt; 3              ash  0.00000 0.00000 fisher      NA       NA</span>
+<span class="co">#&gt; 3              ash  0.00000 0.00000 fisher  1.0000  0.00000</span>
 <span class="co">#&gt; 4            color  0.03918 0.01555 fisher  0.0040  0.01390</span>
 <span class="co">#&gt; 5         dilution  0.00864 0.00780 fisher  0.1395 -0.00435</span>
 <span class="co">#&gt; 6       flavanoids -0.00039 0.00039 fisher  1.0000 -0.00078</span>
