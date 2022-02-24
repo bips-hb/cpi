@@ -290,11 +290,11 @@ cpi <- function(task, learner,
       # No test if CPI==0
       if (test != "bayes") {
         if (test %in% c('t', 'wilcox', 'binom')) {
-          res$statistic <- NA
-          res$estimate <- NA
+          res$statistic <- 0
+          res$estimate <- 0
         }
-        res$p.value <- NA
-        res$ci.lo <- NA
+        res$p.value <- 1
+        res$ci.lo <- 0
       }
     } else if (test == "fisher") {
       orig_mean <- mean(dif)

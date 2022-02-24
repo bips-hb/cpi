@@ -31,7 +31,7 @@ cpi(task = tsk("wine"),
     learner = lrn("classif.ranger", predict_type = "prob", num.trees = 10),
     resampling = rsmp("cv", folds = 5))
 ```
-The result is a CPI value for each feature, i.e. how much did the loss function change when the feature was replaced with its knockoff version, with corresponding standard errors, test statistics, p-values and confidence interval. Note that if the CPI value is exactly 0 (e.g. if a feature was never selected for splitting in a tree), the statistical test returns `NA`. 
+The result is a CPI value for each feature, i.e. how much did the loss function change when the feature was replaced with its knockoff version, with corresponding standard errors, test statistics, p-values and confidence interval. 
 
 # Interface with mlr3
 The task, learner and resampling strategy are specified with the *mlr3* package, which provides a unified interface for machine learning tasks and makes it quite easy to change these components. For example, we can change to regularized logistic regression and a simple holdout as resampling strategy:
@@ -53,7 +53,7 @@ cpi(task = tsk("wine"),
     measure = msr("classif.ce"))
 ```
 
-Here we see more `NA` values because the classification error is less sensitive to small changes and hence results in lower power. 
+Here we see more 0 CPI values because the classification error is less sensitive to small changes and hence results in lower power. 
 
 # Statistical testing
 The CPI offers several statistical tests to be calculated: The *t*-test (`"t"`, default), Wilcoxon signed-rank test (`"wilcox"`), binomial test (`"binom"`), Fisher permutation test (`"fisher"`) and Bayesian testing (`"bayes"`) with the package *BEST*. For example, we re-run the first example with Fisher's permutation test:
