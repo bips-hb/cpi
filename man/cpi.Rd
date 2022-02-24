@@ -111,14 +111,14 @@ For parallel execution, register a backend, e.g. with
 library(mlr3)
 library(mlr3learners)
 
-# Regression with linear model
+# Regression with linear model and cross validation
 cpi(task = tsk("mtcars"), learner = lrn("regr.lm"), 
-    resampling = rsmp("holdout"))
+    resampling = rsmp("cv", folds = 5))
 
-# Classification with logistic regression, log-loss and cross validation
-cpi(task = tsk("iris"), 
+# Classification with logistic regression, log-loss and holdout
+cpi(task = tsk("wine"), 
     learner = lrn("classif.glmnet", predict_type = "prob", lambda = 0.1), 
-    resampling = rsmp("cv", folds = 5), 
+    resampling = rsmp("holdout"), 
     measure = "classif.logloss", test = "t")
  
 # Use your own data (and out-of-bag loss with random forest)
@@ -129,8 +129,8 @@ cpi(task = mytask, learner = mylearner,
     
 # Group CPI
 cpi(task = tsk("iris"), 
-    learner = lrn("classif.glmnet", predict_type = "prob", lambda = 0.1), 
-    resampling = rsmp("cv", folds = 5), 
+    learner = lrn("classif.ranger", predict_type = "prob", num.trees = 10), 
+    resampling = rsmp("cv", folds = 3), 
     groups = list(Sepal = 1:2, Petal = 3:4))
     
 \dontrun{
@@ -142,8 +142,8 @@ res <- cpi(task = tsk("iris"),
 plot(res$Petal.Length)
 
 # Parallel execution
-doParallel::registerDoParallel(4)
-cpi(task = tsk("iris"), 
+doParallel::registerDoParallel()
+cpi(task = tsk("wine"), 
     learner = lrn("classif.glmnet", predict_type = "prob", lambda = 0.1), 
     resampling = rsmp("cv", folds = 5))
     
