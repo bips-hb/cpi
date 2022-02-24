@@ -90,11 +90,11 @@
 #' library(mlr3)
 #' library(mlr3learners)
 #' 
-#' # Regression with linear model and cross validation
+#' # Regression with linear model and holdout validation
 #' cpi(task = tsk("mtcars"), learner = lrn("regr.lm"), 
-#'     resampling = rsmp("cv", folds = 3))
+#'     resampling = rsmp("holdout"))
 #' 
-#' # Classification with logistic regression, log-loss and holdout
+#' # Classification with logistic regression, log-loss and t-test
 #' cpi(task = tsk("wine"), 
 #'     learner = lrn("classif.glmnet", predict_type = "prob", lambda = 0.1), 
 #'     resampling = rsmp("holdout"), 
