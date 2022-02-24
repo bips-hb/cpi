@@ -1,5 +1,5 @@
 <!-- badges: start -->
-[![R-CMD-check](https://github.com/dswatson/cpi/workflows/R-CMD-check/badge.svg)](https://github.com/dswatson/cpi/actions)
+[![R-CMD-check](https://github.com/bips-hb/cpi/workflows/R-CMD-check/badge.svg)](https://github.com/bips-hb/cpi/actions)
 <!-- badges: end -->
 
 ## Conditional Predictive Impact
@@ -12,7 +12,7 @@ The conditional predictive impact (CPI) is a measure of conditional independence
 The package is not on CRAN yet. To install the development version from GitHub using `devtools`, run
 
 ```R
-devtools::install_github("dswatson/cpi")
+devtools::install_github("bips-hb/cpi")
 ```
 
 ### Examples
