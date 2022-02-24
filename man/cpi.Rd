@@ -113,7 +113,7 @@ library(mlr3learners)
 
 # Regression with linear model and cross validation
 cpi(task = tsk("mtcars"), learner = lrn("regr.lm"), 
-    resampling = rsmp("cv", folds = 5))
+    resampling = rsmp("cv", folds = 3))
 
 # Classification with logistic regression, log-loss and holdout
 cpi(task = tsk("wine"), 
