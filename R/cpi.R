@@ -112,15 +112,15 @@
 #'     learner = lrn("classif.ranger", predict_type = "prob", num.trees = 10), 
 #'     resampling = rsmp("cv", folds = 3), 
 #'     groups = list(Sepal = 1:2, Petal = 3:4))
-#'     
+#' }     
+#' \dontrun{      
 #' # Bayesian testing
 #' res <- cpi(task = tsk("iris"), 
 #'            learner = lrn("classif.glmnet", predict_type = "prob", lambda = 0.1), 
 #'            resampling = rsmp("holdout"), 
 #'            measure = "classif.logloss", test = "bayes")
 #' plot(res$Petal.Length)
-#' }     
-#' \dontrun{ 
+#' 
 #' # Parallel execution
 #' doParallel::registerDoParallel()
 #' cpi(task = tsk("wine"), 
