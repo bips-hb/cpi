@@ -1,4 +1,7 @@
 
+# cpi 0.1.3
+* Save/reset previous mlr3 logging level
+
 # cpi 0.1.2
 * Speedup examples for CRAN 
 

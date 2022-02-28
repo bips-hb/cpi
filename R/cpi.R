@@ -148,6 +148,8 @@ cpi <- function(task, learner,
                 groups = NULL,
                 verbose = FALSE) {
   
+  # Set verbose level (and save old state)
+  old_logger_treshold <- lgr::get_logger("mlr3")$threshold
   if (verbose) {
     lgr::get_logger("mlr3")$set_threshold("info")
   } else {
@@ -356,6 +358,9 @@ cpi <- function(task, learner,
   if (!is.null(groups) & !is.null(names(groups))) {
     ret$Group <- names(groups)
   }
+  
+  # Reset to old logging threshold
+  lgr::get_logger("mlr3")$set_threshold(old_logger_treshold)
   
   # Return CPI for all features/groups
   ret
