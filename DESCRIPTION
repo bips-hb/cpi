@@ -1,7 +1,7 @@
 Package: cpi
 Type: Package
 Title: Conditional Predictive Impact
-Version: 0.1.2
+Version: 0.1.3
 Date: 2022-02-24
 Authors@R: 
     c(person(given = "Marvin N.",
@@ -34,6 +34,7 @@ Suggests:
     glmnet,
     testthat (>= 3.0.0),
     knitr,
-    rmarkdown
+    rmarkdown,
+    doParallel
 Config/testthat/edition: 3
 VignetteBuilder: knitr

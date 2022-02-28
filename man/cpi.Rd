@@ -115,7 +115,7 @@ library(mlr3learners)
 cpi(task = tsk("mtcars"), learner = lrn("regr.lm"), 
     resampling = rsmp("holdout"))
 
-\dontrun{
+\donttest{
 # Classification with logistic regression, log-loss and t-test
 cpi(task = tsk("wine"), 
     learner = lrn("classif.glmnet", predict_type = "prob", lambda = 0.1), 
@@ -140,7 +140,8 @@ res <- cpi(task = tsk("iris"),
            resampling = rsmp("holdout"), 
            measure = "classif.logloss", test = "bayes")
 plot(res$Petal.Length)
-
+}     
+\dontrun{ 
 # Parallel execution
 doParallel::registerDoParallel()
 cpi(task = tsk("wine"), 
