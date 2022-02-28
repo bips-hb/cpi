@@ -115,7 +115,7 @@ library(mlr3learners)
 cpi(task = tsk("mtcars"), learner = lrn("regr.lm"), 
     resampling = rsmp("holdout"))
 
-\dontrun{
+\donttest{
 # Classification with logistic regression, log-loss and t-test
 cpi(task = tsk("wine"), 
     learner = lrn("classif.glmnet", predict_type = "prob", lambda = 0.1), 
@@ -133,7 +133,8 @@ cpi(task = tsk("iris"),
     learner = lrn("classif.ranger", predict_type = "prob", num.trees = 10), 
     resampling = rsmp("cv", folds = 3), 
     groups = list(Sepal = 1:2, Petal = 3:4))
-    
+}     
+\dontrun{      
 # Bayesian testing
 res <- cpi(task = tsk("iris"), 
            learner = lrn("classif.glmnet", predict_type = "prob", lambda = 0.1), 

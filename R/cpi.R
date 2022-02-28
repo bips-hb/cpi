@@ -94,7 +94,7 @@
 #' cpi(task = tsk("mtcars"), learner = lrn("regr.lm"), 
 #'     resampling = rsmp("holdout"))
 #' 
-#' \dontrun{
+#' \donttest{
 #' # Classification with logistic regression, log-loss and t-test
 #' cpi(task = tsk("wine"), 
 #'     learner = lrn("classif.glmnet", predict_type = "prob", lambda = 0.1), 
@@ -112,7 +112,8 @@
 #'     learner = lrn("classif.ranger", predict_type = "prob", num.trees = 10), 
 #'     resampling = rsmp("cv", folds = 3), 
 #'     groups = list(Sepal = 1:2, Petal = 3:4))
-#'     
+#' }     
+#' \dontrun{      
 #' # Bayesian testing
 #' res <- cpi(task = tsk("iris"), 
 #'            learner = lrn("classif.glmnet", predict_type = "prob", lambda = 0.1), 
@@ -147,6 +148,8 @@ cpi <- function(task, learner,
                 groups = NULL,
                 verbose = FALSE) {
   
+  # Set verbose level (and save old state)
+  old_logger_treshold <- lgr::get_logger("mlr3")$threshold
   if (verbose) {
     lgr::get_logger("mlr3")$set_threshold("info")
   } else {
@@ -355,6 +358,9 @@ cpi <- function(task, learner,
   if (!is.null(groups) & !is.null(names(groups))) {
     ret$Group <- names(groups)
   }
+  
+  # Reset to old logging threshold
+  lgr::get_logger("mlr3")$set_threshold(old_logger_treshold)
   
   # Return CPI for all features/groups
   ret
