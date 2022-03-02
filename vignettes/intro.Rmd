@@ -14,7 +14,7 @@ knitr::opts_chunk$set(
   comment = "#>"
 )
 set.seed(2022)
-options(digits=2)
+old_digits <- options(digits=2)
 ```
 
 # Get started
@@ -102,5 +102,9 @@ doParallel::registerDoParallel(4)
 cpi(task = tsk("wine"), 
     learner = lrn("classif.ranger", predict_type = "prob", num.trees = 10),
     resampling = rsmp("cv", folds = 5))
+```
+
+```{r, include=FALSE}
+options(old_digits)
 ```
 

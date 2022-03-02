@@ -1,4 +1,7 @@
 
+# cpi 0.1.4
+* Reset options() in vignette
+
 # cpi 0.1.3
 * Save/reset previous mlr3 logging level
 
