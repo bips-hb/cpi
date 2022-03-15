@@ -9,7 +9,13 @@ David S. Watson, Marvin N. Wright
 The conditional predictive impact (CPI) is a measure of conditional independence. It can be calculated using any supervised learning algorithm, loss function, and knockoff sampler. We provide statistical inference procedures for the CPI without parametric assumptions or sparsity constraints. The method works with continuous and categorical data.
 
 ### Installation
-The package is not on CRAN yet. To install the development version from GitHub using `devtools`, run
+To install the ranger R package from CRAN, just run
+
+```R
+install.packages("cpi")
+``` 
+
+To install the development version from GitHub using `devtools`, run
 
 ```R
 devtools::install_github("bips-hb/cpi")
