@@ -40,6 +40,10 @@ predict_learner <- function(mod, task, resampling = NULL, test_data = NULL) {
       }
       preds <- predict(mod$model, task$data(), predict.all = TRUE)$predictions
       oob_idx <- ifelse(simplify2array(mod$model$inbag.counts) == 0, TRUE, NA)
+      oob_cnt <- rowSums(oob_idx, na.rm = TRUE)
+      if (min(oob_cnt) == 0) {
+        stop("OOB error is not computable when observations occur in every tree.")
+      }
       if (length(dim(preds)) == 3) {
         # Probability forest
         for (i in 1:dim(preds)[2]) {
