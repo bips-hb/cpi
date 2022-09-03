@@ -1,9 +1,9 @@
 pandoc: 2.7.3
-pkgdown: 2.0.2
+pkgdown: 2.0.6
 pkgdown_sha: ~
 articles:
   intro: intro.html
-last_built: 2022-03-15T05:14Z
+last_built: 2022-09-03T09:56Z
 urls:
   reference: https://bips-hb.github.io/cpi/reference
   article: https://bips-hb.github.io/cpi/articles
