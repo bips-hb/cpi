@@ -254,6 +254,7 @@ rescale_prob <- function(truth, response, prob, classification_thresh) {
                 "flipper_length_mm", "body_mass_g")
  data <- data[, keep_cols]
  data <- data[complete.cases(data), ]
+ 
  cpi(task = TaskClassif$new(id = "penguins.binary", backend = data, 
                             target = "species", positive = "1"), 
      learner = lrn("classif.ranger", predict_type = "prob"), 
@@ -262,6 +263,7 @@ rescale_prob <- function(truth, response, prob, classification_thresh) {
      modify_trp = rescale_prob,
      classification_thresh = 0.3)
 }
+
 }
 \references{
 Watson, D. & Wright, M. (2020). Testing conditional independence in 

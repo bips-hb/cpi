@@ -229,6 +229,7 @@
 #'                 "flipper_length_mm", "body_mass_g")
 #'  data <- data[, keep_cols]
 #'  data <- data[complete.cases(data), ]
+#'  
 #'  cpi(task = TaskClassif$new(id = "penguins.binary", backend = data, 
 #'                             target = "species", positive = "1"), 
 #'      learner = lrn("classif.ranger", predict_type = "prob"), 
@@ -236,7 +237,8 @@
 #'      measure = "classif.logloss", test = "t", 
 #'      modify_trp = rescale_prob,
 #'      classification_thresh = 0.3)
-#'}
+#' }
+#'
 
 
 cpi <- function(task, learner, 
