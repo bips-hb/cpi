@@ -32,8 +32,19 @@
 #' @param groups (Named) list with groups. Set to \code{NULL} (default) for no
 #'   groups, i.e. compute CPI for each feature. See examples. 
 #' @param verbose Verbose output of resampling procedure.
-#' @param modify_trp An optional function to modify the \code{truth}, \code{response}, and \code{prob} values of the model output. Function must take as arguments the original \code{truth}, \code{response}, and \code{prob} output from model predictions and return a named list of \code{truth}, \code{response}, and \code{prob} values, some of which may be modified. For modified values to work nicely with the rest of the package, they must match the expected format of unmodified values (e.g., \code{prob} must be a data.frame with the number of columns being the number of classes and column names being the class labels; the first level of the \code{truth} factor must be the positive class). See examples. Set to \code{FALSE} (default) to use unmodified truth, response, and probability values from model output.
-#' @param ... Optional arguments to be passed to the \code{modify_trp} function (e.g., a classification threshold).
+#' @param modify_trp An optional function to modify the \code{truth}, \code{response}, 
+#'   and \code{prob} values of the model output. Function must take as arguments the 
+#'   original \code{truth}, \code{response}, and \code{prob} output from model 
+#'   predictions and return a named list of \code{truth}, \code{response}, and 
+#'   \code{prob} values, some of which may be modified. For modified values to work 
+#'   nicely with the rest of the package, they must match the expected format of 
+#'   unmodified values (e.g., \code{prob} must be a data.frame with the number of columns
+#'   being the number of classes and column names being the class labels; the first 
+#'   level of the \code{truth} factor must be the positive class). See examples. Set to 
+#'   \code{FALSE} (default) to use unmodified truth, response, and probability values 
+#'   from model output.
+#' @param ... Optional arguments to be passed to the \code{modify_trp} function 
+#'   (e.g., a classification threshold).
 #'
 #' @return 
 #' For \code{test = "bayes"} a list of \code{BEST} objects. In any other 
@@ -144,10 +155,11 @@
 #' # Data prep:
 #' data <- palmerpenguins::penguins
 #' data$species <- ifelse(data$species == "Adelie", 1, 0)
-#' data <- data[, c("species", "bill_length_mm", "bill_depth_mm", "flipper_length_mm", "body_mass_g")]
+#' keep_cols <- c("species", "bill_length_mm", "bill_depth_mm", 
+#'                "flipper_length_mm", "body_mass_g")
+#' data <- data[, keep_cols]
 #' data <- data[complete.cases(data), ]
-#' task <- TaskRegr$new(id = "penguins.regr", data, target = "species")
-
+#' 
 #' response_is_prob <- function(truth, response, prob) {
 #'    prob <- setNames(data.frame(response, 1 - response), nm = c("1", "0"))
 #'    response <- ifelse(response >= 0.5, yes = 1, no = 0)
@@ -155,7 +167,7 @@
 #'    return(list(truth = truth, response = response, prob = prob))
 #'   }     
 #' 
-#' cpi(task = task, 
+#' cpi(task = TaskRegr$new(id = "penguins.regr", backend = data, target = "species"), 
 #'     learner = lrn("regr.ranger"), 
 #'      resampling = rsmp("holdout"), 
 #'      measure = "classif.logloss", test = "t", 
@@ -165,14 +177,15 @@
 #' # modify_trp function that makes a new classification threshold
 #' # Same data can be used.
 #'  
-#' response_is_prob_new_thresh <- function(truth, response, prob, classification_thresh) {
+#' response_is_prob_new_thresh <- 
+#'   function(truth, response, prob, classification_thresh) {
 #'     prob <- setNames(data.frame(response, 1 - response), nm = c("1", "0"))
 #'     response <- ifelse(response >= classification_thresh, yes = 1, no = 0)
 #'     
 #'     return(list(truth = truth, response = response, prob = prob))
-#' }
+#'   }
 #'    
-#' cpi(task = task, 
+#' cpi(task = TaskRegr$new(id = "penguins.regr", backend = data, target = "species"), 
 #'     learner = lrn("regr.ranger"), 
 #'     resampling = rsmp("holdout"), 
 #'     measure = "classif.logloss", test = "t", 
@@ -190,7 +203,8 @@
 #'     }
 #' 
 #'    classes <- levels(truth)
-#'    response <- ifelse(prob[, classes[1]] >= classification_thresh, yes = classes[1], no = classes[2])
+#'    response <- ifelse(prob[, classes[1]] >= classification_thresh, 
+#'                       yes = classes[1], no = classes[2])
 #'    prob[, classes[1]] <- ifelse(prob[, classes[1]] <= classification_thresh,
 #'                                 yes = rescale(x = prob[, classes[1]],
 #'                                               old_max = classification_thresh,
@@ -211,10 +225,12 @@
 #'  # Data prep
 #'  data = palmerpenguins::penguins
 #'  data$species = factor(ifelse(data$species == "Adelie", "1", "0"))
-#'  data <- data[, c("species", "bill_length_mm", "bill_depth_mm", "flipper_length_mm", "body_mass_g")]
+#'  keep_cols <- c("species", "bill_length_mm", "bill_depth_mm", 
+#'                 "flipper_length_mm", "body_mass_g")
+#'  data <- data[, keep_cols]
 #'  data <- data[complete.cases(data), ]
-
-#'  cpi(task = TaskClassif$new("penguins.binary", data, target = "species", positive = "1"), 
+#'  cpi(task = TaskClassif$new(id = "penguins.binary", backend = data, 
+#'                             target = "species", positive = "1"), 
 #'      learner = lrn("classif.ranger", predict_type = "prob"), 
 #'      resampling = rsmp("holdout"), 
 #'      measure = "classif.logloss", test = "t", 

@@ -17,7 +17,9 @@ cpi(
   x_tilde = NULL,
   knockoff_fun = function(x) knockoff::create.second_order(as.matrix(x)),
   groups = NULL,
-  verbose = FALSE
+  verbose = FALSE,
+  modify_trp = FALSE,
+  ...
 )
 }
 \arguments{
@@ -58,6 +60,21 @@ created with the function given in \code{knockoff_fun}.}
 groups, i.e. compute CPI for each feature. See examples.}
 
 \item{verbose}{Verbose output of resampling procedure.}
+
+\item{modify_trp}{An optional function to modify the \code{truth}, \code{response}, 
+and \code{prob} values of the model output. Function must take as arguments the 
+original \code{truth}, \code{response}, and \code{prob} output from model 
+predictions and return a named list of \code{truth}, \code{response}, and 
+\code{prob} values, some of which may be modified. For modified values to work 
+nicely with the rest of the package, they must match the expected format of 
+unmodified values (e.g., \code{prob} must be a data.frame with the number of columns
+being the number of classes and column names being the class labels; the first 
+level of the \code{truth} factor must be the positive class). See examples. Set to 
+\code{FALSE} (default) to use unmodified truth, response, and probability values 
+from model output.}
+
+\item{...}{Optional arguments to be passed to the \code{modify_trp} function 
+(e.g., a classification threshold).}
 }
 \value{
 For \code{test = "bayes"} a list of \code{BEST} objects. In any other 
@@ -154,8 +171,97 @@ mytask <- as_task_regr(iris, target = "Petal.Length")
 cpi(task = mytask, learner = lrn("regr.ranger"), 
     resampling = rsmp("holdout"), 
     knockoff_fun = seqknockoff::knockoffs_seq)
-}   
 
+# Use a function to modify the truth, response, and probability model outputs
+# Add a probability data.frame to predictions when regression was run on a
+# 0/1 binary outcome (i.e., treat the response as a probability, make the
+# response a "classified" outcome)
+
+# Data prep:
+data <- palmerpenguins::penguins
+data$species <- ifelse(data$species == "Adelie", 1, 0)
+keep_cols <- c("species", "bill_length_mm", "bill_depth_mm", 
+               "flipper_length_mm", "body_mass_g")
+data <- data[, keep_cols]
+data <- data[complete.cases(data), ]
+
+response_is_prob <- function(truth, response, prob) {
+   prob <- setNames(data.frame(response, 1 - response), nm = c("1", "0"))
+   response <- ifelse(response >= 0.5, yes = 1, no = 0)
+   
+   return(list(truth = truth, response = response, prob = prob))
+  }     
+
+cpi(task = TaskRegr$new(id = "penguins.regr", backend = data, target = "species"), 
+    learner = lrn("regr.ranger"), 
+     resampling = rsmp("holdout"), 
+     measure = "classif.logloss", test = "t", 
+     modify_trp = response_is_prob)
+     
+# Same as above, but also passing an additional argument to the
+# modify_trp function that makes a new classification threshold
+# Same data can be used.
+ 
+response_is_prob_new_thresh <- 
+  function(truth, response, prob, classification_thresh) {
+    prob <- setNames(data.frame(response, 1 - response), nm = c("1", "0"))
+    response <- ifelse(response >= classification_thresh, yes = 1, no = 0)
+    
+    return(list(truth = truth, response = response, prob = prob))
+  }
+   
+cpi(task = TaskRegr$new(id = "penguins.regr", backend = data, target = "species"), 
+    learner = lrn("regr.ranger"), 
+    resampling = rsmp("holdout"), 
+    measure = "classif.logloss", test = "t", 
+    modify_trp = response_is_prob_new_thresh,
+    classification_thresh = 0.3)
+       
+# Setting a new classification threshold on a "classif" learner and rescaling
+# probability outputs such that predictions lower than the new threshold
+# are on [0,0.5] and predictions above the new threshold are on [0.5, 1]
+ 
+rescale_prob <- function(truth, response, prob, classification_thresh) {
+ 
+    rescale <- function(x, old_max, old_min, new_max, new_min) {
+      return(((new_max - new_min) / (old_max - old_min)) * (x - old_max) + new_max)
+    }
+
+   classes <- levels(truth)
+   response <- ifelse(prob[, classes[1]] >= classification_thresh, 
+                      yes = classes[1], no = classes[2])
+   prob[, classes[1]] <- ifelse(prob[, classes[1]] <= classification_thresh,
+                                yes = rescale(x = prob[, classes[1]],
+                                              old_max = classification_thresh,
+                                              old_min = 0,
+                                              new_max = 0.5,
+                                              new_min = 0),
+                                no = rescale(x = prob[, classes[1]],
+                                             old_max = 1,
+                                             old_min = classification_thresh,
+                                             new_max = 1,
+                                             new_min = 0.5))
+
+   prob[, classes[2]] <- 1 - prob[, classes[1]]
+
+   return(list(truth = truth, response = response, prob = prob))
+ }
+ 
+ # Data prep
+ data = palmerpenguins::penguins
+ data$species = factor(ifelse(data$species == "Adelie", "1", "0"))
+ keep_cols <- c("species", "bill_length_mm", "bill_depth_mm", 
+                "flipper_length_mm", "body_mass_g")
+ data <- data[, keep_cols]
+ data <- data[complete.cases(data), ]
+ cpi(task = TaskClassif$new(id = "penguins.binary", backend = data, 
+                            target = "species", positive = "1"), 
+     learner = lrn("classif.ranger", predict_type = "prob"), 
+     resampling = rsmp("holdout"), 
+     measure = "classif.logloss", test = "t", 
+     modify_trp = rescale_prob,
+     classification_thresh = 0.3)
+}
 }
 \references{
 Watson, D. & Wright, M. (2020). Testing conditional independence in 
