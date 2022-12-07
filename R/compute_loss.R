@@ -1,6 +1,6 @@
 
 # Internal function to compute sample loss
-compute_loss <- function(pred, measure) {
+compute_loss <- function(pred, measure, modify_trp, ...) {
   if (inherits(pred, "Prediction")) {
     truth <- pred$truth
     response <- pred$response
@@ -9,6 +9,13 @@ compute_loss <- function(pred, measure) {
     truth <- do.call(c, lapply(pred, function(x) x$truth))
     response <- do.call(c, lapply(pred, function(x) x$response))
     prob <- do.call(rbind, lapply(pred, function(x) x$prob))
+  }
+  
+  if (is.function(modify_trp)) {
+    out <- modify_trp(truth, response, prob, ...)
+    truth <- out$truth
+    response <- out$response
+    prob <- out$prob
   }
   
   if (measure$id == "regr.mse") {
