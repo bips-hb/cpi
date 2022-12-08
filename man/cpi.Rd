@@ -205,10 +205,10 @@ split <- rsample::initial_split(data)
 analysis_data <- rsample::analysis(split)
 assessment_data <- rsample::assessment(split)
 
- cpi(task = TaskClassif$new(id = "penguins.binary", backend = data, 
+ cpi(task = TaskClassif$new(id = "penguins.binary", backend = analysis_data, 
                             target = "species", positive = "1"), 
     learner = lrn("classif.ranger", predict_type = "prob"), 
-    test_data = test_data,
+    test_data = assessment_data,
     measure = mcc, 
     test = "fisher",
     B = 1)
