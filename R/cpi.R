@@ -51,6 +51,7 @@
 #' @import stats mlr3 foreach
 #' @importFrom knockoff create.second_order
 #' @importFrom lgr get_logger
+#' @importFrom mlr3pipelines PipeOpMutate
 #'
 #' @details 
 #' This function computes the conditional predictive impact (CPI) of one or
@@ -243,20 +244,25 @@ cpi <- function(task, learner,
   } else {
     stop("Argument 'x_tilde' must be a matrix, data.frame or NULL.")
   }
-
+  
   # For each feature, fit reduced model and return difference in error
   cpi_fun <- function(i) {
     if (is.null(test_data)) {
       reduced_test_data <- NULL
-      reduced_data <- as.data.frame(task$data())
-      reduced_data[, task$feature_names[i]] <- x_tilde[, task$feature_names[i]]
-      if (task$task_type == "regr") {
-        reduced_task <- as_task_regr(reduced_data, target = task$target_names)
-      } else if (task$task_type == "classif") {
-        reduced_task <- as_task_classif(reduced_data, target = task$target_names)
-      } else {
-        stop("Unknown task type.")
-      }
+      
+      mutation <-
+        lapply(X = i, FUN = function(k) {
+          return(as.formula(paste0("~ x_tilde[, '", task$feature_names[k], "']")))
+        })
+      
+      names(mutation) <- task$feature_names[i]
+      
+      pom <-
+        mlr3pipelines::PipeOpMutate$new(
+          param_vals = list(mutation = mutation)
+        )
+      
+      reduced_task <- pom$train(list(task))$output
     } else {
       reduced_task <- NULL
       reduced_test_data <- test_data
@@ -273,7 +279,7 @@ cpi <- function(task, learner,
     }
     cpi <- mean(dif)
     se <- sd(dif) / sqrt(length(dif))
-
+    
     if (is.null(groups)) {
       res <- data.frame(Variable = task$feature_names[i],
                         CPI = unname(cpi), 

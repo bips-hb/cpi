@@ -22,11 +22,11 @@ Description: A general test for conditional independence in supervised learning
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.2
 URL: https://github.com/bips-hb/cpi,
     https://bips-hb.github.io/cpi/
 BugReports: https://github.com/bips-hb/cpi/issues
-Imports: foreach, mlr3, lgr, knockoff
+Imports: foreach, mlr3, lgr, knockoff, mlr3pipelines
 Suggests: 
     BEST,
     mlr3learners,
