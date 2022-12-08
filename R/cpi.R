@@ -253,9 +253,10 @@ cpi <- function(task, learner,
       mutation <-
         lapply(X = i, FUN = function(k) {
           return(as.formula(paste0("~ x_tilde[, '", task$feature_names[k], "']")))
-        }) |>
-        setNames(nm = task$feature_names[i])
-
+        })
+      
+      names(mutation) <- task$feature_names[i]
+      
       pom <-
         mlr3pipelines::PipeOpMutate$new(
           param_vals = list(mutation = mutation)
