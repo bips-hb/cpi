@@ -1,3 +1,21 @@
+
+# Internal function to fit learner and compute prediction error
+fit_learner <- function(learner, task, resampling = NULL, measure = NULL, test_data = NULL, verbose = FALSE) {
+  if (!is.null(test_data)) {
+    # Compute error on test data
+    mod <- learner$train(task)
+  } else if (inherits(resampling, "Resampling")) {
+    # Full model resampling
+    mod <- resample(task, learner, resampling, store_models = TRUE)
+  } else if (is.character(resampling) && resampling %in% c("none", "oob")) {
+    # Compute error on training data
+    mod <- learner$train(task)
+  } else {
+    stop("Unknown value for 'resampling'.")
+  }
+  mod
+}
+
 # Internal function to predict and compute prediction error
 predict_learner <- function(mod, task, resampling = NULL, test_data = NULL) {
   if (!is.null(test_data)) {
@@ -13,7 +31,7 @@ predict_learner <- function(mod, task, resampling = NULL, test_data = NULL) {
     pred <- mod$predict_newdata(task$data())
   } else if (resampling == "oob") {
     # Use OOB predictions if available
-    if (inherits(mod$model, "ranger")) { # check if variable mod$model inherits from class ranger
+    if (inherits(mod$model, "ranger")) {
       # ranger
       # In-sample predictions will be overriden below
       pred_data <- as.data.table(mod$predict_newdata(task$data()))
@@ -62,19 +80,3 @@ predict_learner <- function(mod, task, resampling = NULL, test_data = NULL) {
   pred
 }
 
-# Internal function to fit learner and compute prediction error
-fit_learner <- function(learner, task, resampling = NULL, measure = NULL, test_data = NULL, verbose = FALSE) {
-  if (!is.null(test_data)) {
-    # Compute error on test data
-    mod <- learner$train(task)
-  } else if (inherits(resampling, "Resampling")) {
-    # Full model resampling
-    mod <- resample(task, learner, resampling, store_models = TRUE)
-  } else if (is.character(resampling) && resampling %in% c("none", "oob")) {
-    # Compute error on training data
-    mod <- learner$train(task)
-  } else {
-    stop("Unknown value for 'resampling'.")
-  }
-  mod
-}
