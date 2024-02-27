@@ -1,4 +1,7 @@
 
+# cpi 0.1.5
+* Allow a list of knockoff matrices to improve stability
+
 # cpi 0.1.4
 * Reset options() in vignette
 
