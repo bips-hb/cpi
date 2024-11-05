@@ -179,10 +179,12 @@ cpi <- function(task, learner,
     stop("Unknown test in 'test' argument.")
   }
   if (test == "bayes") {
-    if (!requireNamespace("BEST", quietly = TRUE)) {
-      stop("Package \"BEST\" needed for Bayesian testing. Please install it.",
-           call. = FALSE)
-    }
+    # if (!requireNamespace("BEST", quietly = TRUE)) {
+    #   stop("Package \"BEST\" needed for Bayesian testing. Please install it.",
+    #        call. = FALSE)
+    # }
+    stop("Bayesian testing currently not implemented as BEST package was removed from CRAN.",
+         call. = FALSE)
   }
   
   if (task$task_type == "classif" & measure$id %in% c("classif.logloss", "classif.bbrier")) {
@@ -336,8 +338,9 @@ cpi <- function(task, learner,
       res$p.value <- (sum(perm_means >= orig_mean) + 1)/(B + 1)
       res$ci.lo <- orig_mean - quantile(perm_means, 1 - alpha)
     } else if (test == "bayes") {
-      res <- list(BEST::BESTmcmc(dif, parallel = FALSE, verbose = FALSE))
-      names(res) <- task$feature_names[i]
+      #res <- list(BEST::BESTmcmc(dif, parallel = FALSE, verbose = FALSE))
+      #names(res) <- task$feature_names[i]
+      message("Bayesian testing currently not implemented as BEST package was removed from CRAN.")
     } else if (test %in% c('t', 'wilcox', 'binom')) {
       if (test == "t") {
         test_result <- t.test(dif, alternative = 'greater', 
