@@ -15,6 +15,7 @@ cpi(
   B = 1999,
   alpha = 0.05,
   x_tilde = NULL,
+  aggr_fun = mean,
   knockoff_fun = function(x) knockoff::create.second_order(as.matrix(x)),
   groups = NULL,
   verbose = FALSE
@@ -49,7 +50,10 @@ test), \code{"fisher"} (Fisher permutation test) or "bayes"
 \item{alpha}{Significance level for confidence intervals.}
 
 \item{x_tilde}{Knockoff matrix or data.frame. If not given (the default), it will be 
-created with the function given in \code{knockoff_fun}.}
+created with the function given in \code{knockoff_fun}. 
+Also accepts a list of matrices or data.frames.}
+
+\item{aggr_fun}{Aggregation function over replicates.}
 
 \item{knockoff_fun}{Function to generate knockoffs. Default: 
 \code{knockoff::\link{create.second_order}} with matrix argument.}
