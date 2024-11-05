@@ -1,8 +1,8 @@
 Package: cpi
 Type: Package
 Title: Conditional Predictive Impact
-Version: 0.1.4
-Date: 2022-03-02
+Version: 0.1.5
+Date: 2024-11-05
 Authors@R: 
     c(person(given = "Marvin N.",
              family = "Wright",
@@ -28,7 +28,6 @@ URL: https://github.com/bips-hb/cpi,
 BugReports: https://github.com/bips-hb/cpi/issues
 Imports: foreach, mlr3, lgr, knockoff
 Suggests: 
-    BEST,
     mlr3learners,
     ranger,
     glmnet,

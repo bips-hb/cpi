@@ -1,4 +1,7 @@
 
+# cpi 0.1.5
+* Remove BEST dependency (removed from CRAN)
+
 # cpi 0.1.4
 * Reset options() in vignette
 
