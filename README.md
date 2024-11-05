@@ -1,5 +1,4 @@
 <!-- badges: start -->
-[![R-CMD-check](https://github.com/bips-hb/cpi/workflows/R-CMD-check/badge.svg)](https://github.com/bips-hb/cpi/actions)
 [![check-standard](https://github.com/bips-hb/cpi/actions/workflows/check-standard.yaml/badge.svg)](https://github.com/bips-hb/cpi/actions/workflows/check-standard.yaml)
 <!-- badges: end -->
 
