@@ -3,7 +3,7 @@ pkgdown: 2.1.1
 pkgdown_sha: ~
 articles:
   intro: intro.html
-last_built: 2024-11-25T13:34Z
+last_built: 2024-11-25T13:46Z
 urls:
   reference: https://bips-hb.github.io/cpi/reference
   article: https://bips-hb.github.io/cpi/articles
