@@ -1,8 +1,8 @@
 bibentry(
   bibtype  = "Article",
   title    = "Testing conditional independence in supervised learning algorithms",
-  author   = personList(as.person("David S. Watson"),
-                                   as.person("Marvin N. Wright")),
+  author   = c(as.person("David S. Watson"),
+               as.person("Marvin N. Wright")),
   journal  = "Machine Learning",
   year     = "2011",
   volume   = "110",
