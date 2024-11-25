@@ -25,7 +25,7 @@ cpi(
 \item{task}{The prediction \code{mlr3} task, see examples.}
 
 \item{learner}{The \code{mlr3} learner used in CPI. If you pass a string, the 
-learner will be created via \code{mlr3::\link{lrn}}.}
+learner will be created via \code{mlr3::\link[mlr3]{lrn}}.}
 
 \item{resampling}{Resampling strategy, \code{mlr3} resampling object 
 (e.g. \code{rsmp("holdout")}), "oob" (out-of-bag) or "none" 
@@ -56,7 +56,7 @@ Also accepts a list of matrices or data.frames.}
 \item{aggr_fun}{Aggregation function over replicates.}
 
 \item{knockoff_fun}{Function to generate knockoffs. Default: 
-\code{knockoff::\link{create.second_order}} with matrix argument.}
+\code{knockoff::\link[knockoff]{create.second_order}} with matrix argument.}
 
 \item{groups}{(Named) list with groups. Set to \code{NULL} (default) for no
 groups, i.e. compute CPI for each feature. See examples.}
